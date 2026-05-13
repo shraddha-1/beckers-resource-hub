@@ -1,130 +1,189 @@
-# Becker's Resource Hub — Design & Development Decisions
+# Becker's Resource Hub
 
-## What this is
+A content asset portal built for the Becker's Healthcare UX Engineer take-home. Browse, filter, and register for webinars, whitepapers, and podcasts curated for health system executives.
 
-A content asset portal built on top of Becker's Healthcare's design system.
-Visitors can browse, filter, and register for webinars, whitepapers, and
-podcasts curated for hospital and health system executives.
+---
 
-## How to run
+## Running locally
 
-Terminal 1 — start the backend:
+You need **two terminal windows** running at the same time.
+
+### Step 1 — Install and start the backend
+
 ```bash
-cd asset-lead-gen-interview-take-home-main
+npm install
 npm run dev
-# Backend runs on http://localhost:3000
 ```
 
-Terminal 2 — start the frontend:
+You should see:
+
+```
+[assetService] Loaded 10 assets and 10 signups from stub data
+Server listening on port 3000
+```
+
+Keep this terminal open.
+
+### Step 2 — Install and start the frontend
+
+Open a second terminal window in the same folder.
+
 ```bash
-cd asset-lead-gen-interview-take-home-main/client
+cd client
+npm install
 npm run dev
-# Frontend runs on http://localhost:5173
+```
+
+You should see:
+
+```
+➜  Local:   http://localhost:5173/
+```
+
+### Step 3 — Open the app
+
+Go to **http://localhost:5173** in your browser.
+
+> If you see a blank page or data is not loading, make sure the backend terminal from Step 1 is still running.
+
+---
+
+## Requirements
+
+- Node.js v18 or higher
+- npm v9 or higher
+
+Check your versions:
+
+```bash
+node --version
+npm --version
+```
+
+Download Node.js at https://nodejs.org if needed.
+
+---
+
+## Pages
+
+| Page | URL | What it does |
+|------|-----|--------------|
+| Homepage | `/` | Featured assets, recently viewed, newsletter |
+| Resource library | `/assets` | Browse, filter, search, paginate |
+| Asset detail | `/assets/:id` | Full brief, content gate, registration |
+| Design decisions | `/decisions` | Documents every design and technical decision |
+
+---
+
+## Project structure
+
+```
+├── src/                     # Backend — Express + TypeScript
+│   └── data/
+│       ├── assets.json      # 10 stub assets
+│       └── persons.json     # Known registrants
+│
+└── client/                  # Frontend — React + Vite
+    └── src/
+        ├── components/      # Nav, Footer, Badge, ContentGate, etc.
+        ├── data/
+        │   └── flagship.json  # Demo asset shown on homepage only
+        ├── lib/
+        │   ├── api.js         # All API calls
+        │   ├── assetHelpers.js
+        │   ├── recentlyViewed.js
+        │   └── unlocks.js
+        └── pages/
+            ├── Home.jsx
+            ├── Listing.jsx
+            ├── AssetDetail.jsx
+            ├── Signup.jsx
+            └── Decisions.jsx
 ```
 
 ---
 
-## Brand decisions
+## API
 
-### Name — "Becker's Resource Hub"
+The backend runs on `http://localhost:3000`. All responses wrap data in `{ data: T }` on success and `{ error: string }` on failure.
 
-Follows their exact naming convention across all properties:
-Becker's Hospital Review, Becker's Clinical Leadership,
-Becker's Dental + DSO Review. Descriptive, institutional,
-no invented words. "Resource Hub" communicates the product's
-purpose immediately to a time-poor executive audience.
+### GET /assets
+Returns all assets.
 
-### Logo treatment — Fira Sans uppercase
+```bash
+curl http://localhost:3000/assets
+```
 
-Looking at their actual sites, the product name is always
-in bold Fira Sans, not Noto Serif. The serif is reserved
-for article headlines and editorial content. The logo uses:
+### GET /assets/:id
+Returns a single asset.
 
-- "BECKER'S ——" in 9px uppercase gray Fira Sans
-- A horizontal rule — their exact wordmark pattern
-- "RESOURCE HUB" in 20px bold uppercase red Fira Sans
+```bash
+curl http://localhost:3000/assets/5af0e596b3c7e95aaafe42e01222f91666354f9152238bcf443b2c4c4ac46cfa
+```
 
-### Color usage — strictly their palette
+### POST /assets/:id/signup
+Registers a person. Idempotent — same person + same asset always returns the same record.
 
-Their system has three color families: navy, red, ice/gray.
-We used no invented colors. Every color references a design
-system variable from `colors_and_type.css`.
+```bash
+curl -X POST http://localhost:3000/assets/5af0e596b3c7e95aaafe42e01222f91666354f9152238bcf443b2c4c4ac46cfa/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "person": {
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "jobTitle": "CFO",
+      "companyName": "Acme Health",
+      "email": "jane.smith@acme.com"
+    }
+  }'
+```
 
----
-
-## Navigation decisions
-
-### Two-row navigation
-
-Mirrors their exact site pattern:
-- Top row: site switcher + Subscribe CTA
-- Bottom row: logo + primary nav (sticky)
-
-The site switcher lists all Becker's properties with
-Resource Hub as the first, active item. This establishes
-the product as a Becker's sub-brand immediately.
-
-### Subscribe as the primary CTA — not Browse Library
-
-Becker's business model is newsletter subscriptions and
-lead generation. Subscribe appears in three places:
-
-1. Top utility bar — always visible, red pill button
-2. Hero section — ghost button secondary CTA
-3. Full newsletter section at page bottom
-
-Browse Library is secondary. Converting a visitor to a
-subscriber is more valuable to the business than a
-one-time content download.
-
-### Resources dropdown replaces Browse Library button
-
-"Resources" in the nav and "Browse Library" as a separate
-button pointed to the same page. That's redundant and
-creates visual noise. The Resources dropdown contains
-all four content types plus All Resources — one entry
-point, clear hierarchy.
+Returns `400` with `{ "error": "person is required" }` if the person field is missing.
 
 ---
 
-## Listing page decisions
+## Running tests
 
-### Horizontal rows, not cards
+```bash
+# Unit tests
+npm test
 
-Target audience is C-suite executives — CFOs, CIOs, CEOs.
-They read Bloomberg terminals, Epic dashboards, and
-financial reports daily. They are comfortable with
-information-dense interfaces and scan horizontally.
+# E2E tests
+npx jest src/__tests__/assets.e2e.test.ts
 
-Card grids with large padding feel consumer-grade for
-this audience. Rows let them read more assets per screen
-and find what they need faster.
+# Watch mode
+npm run test:watch
+```
 
-### "Load more" pagination — not infinite scroll
+---
 
-The API returns all 10 assets in a single response.
-We show 5 at a time with a "Load more (X remaining)"
-button. Here is why we chose this over infinite scroll:
+## Key decisions
 
-**Why not infinite scroll:**
-- Infinite scroll removes the user's sense of position
-  in the list. They cannot tell how much content exists
-  or where they are in it.
-- For a 10-item list, infinite scroll provides zero
-  benefit and adds implementation complexity.
-- Healthcare executives are goal-oriented browsers,
-  not passive content consumers. They want to see the
-  full scope of available content before committing.
+Full reasoning is on the `/decisions` page. Short version:
 
-**Why load more works here:**
-- The count "Load more (5 remaining)" tells the user
-  exactly how much content exists before they click.
-- It preserves scroll position — the user stays where
-  they are, new content appears below.
-- It is a single line of state: `page` increments by 1,
-  `paginated = filtered.slice(0, page * PAGE_SIZE)`.
-- When filters change, page resets to 1 automatically
-  so the user always sees the most relevant results
-  at the top.
+- **Rows not cards** on the listing page — matches the information-dense interfaces this audience uses daily
+- **Pagination over infinite scroll** — page state lives in the URL so the back button restores position
+- **Verb-matched CTAs** — Register, Watch, Download, Listen instead of generic Sign Up
+- **Blur-time validation** — each field validates when the user leaves it, not on submit
+- **Inline confirmation** — form transforms in place after signup, primary CTA returns user to the asset
+- **Content gate before signup** — full editorial brief visible before asking for contact details
+- **URL-based filter state** — every filter writes to URL params so back button and sharing work correctly
+- **localStorage personalization** — recently viewed (up to 3) and form pre-fill across sessions
+- **Vite proxy** — all API calls use `/api/assets`, no CORS config needed on the backend
 
-**How it works with filters:**
+---
+
+## Accessibility
+
+Built to WCAG 2.1 AA throughout. Highlights:
+
+- Skip to main content link
+- `:focus-visible` outlines on all interactive elements
+- `aria-live` on result counts and confirmations
+- `aria-pressed` on filter chips and sort buttons
+- `role="img"` with `aria-label` on all badges
+- `role="alert"` on form errors and API errors
+- Minimum 44×44px touch targets on all buttons
+- All color combinations pass AA contrast (most pass AAA)
+
+Full contrast audit with ratios is on the `/decisions` page.
