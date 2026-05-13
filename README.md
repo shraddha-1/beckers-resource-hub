@@ -91,7 +91,7 @@ Download Node.js at https://nodejs.org if needed.
 │
 └── client/                  # Frontend — React + Vite
     └── src/
-        ├── components/      # Nav, Footer, Badge, ContentGate, etc.
+        ├── components/      # Nav, Footer, Badge, etc.
         ├── data/
         │   └── flagship.json  # Demo asset shown on homepage only
         ├── lib/
