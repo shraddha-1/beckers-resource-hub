@@ -2,30 +2,36 @@
 // signup gate. Stored in localStorage so the gate is bypassed on return
 // visits without requiring real authentication. Mirrors the try/catch
 // pattern used by trackView in Home.jsx so private-mode browsers fail
-// silently instead of throwing.
+
 
 const KEY = 'bh_unlocked'
 
-export function getUnlocked() {
+export function markUnlocked(id) {
   try {
-    const raw = localStorage.getItem(KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
+    const existing = JSON.parse(localStorage.getItem(KEY) || '[]')
+    if (!existing.includes(id)) {
+      localStorage.setItem(KEY, JSON.stringify([...existing, id]))
+    }
+  } catch {}
 }
 
 export function isUnlocked(id) {
-  return getUnlocked().includes(id)
+  try {
+    const existing = JSON.parse(localStorage.getItem(KEY) || '[]')
+    return existing.includes(id)
+  } catch {}
+  return false
 }
 
-export function markUnlocked(id) {
+export function getUnlockedIds() {
   try {
-    const current = getUnlocked()
-    if (current.includes(id)) return
-    const next = [id, ...current].slice(0, 50)
-    localStorage.setItem(KEY, JSON.stringify(next))
+    return JSON.parse(localStorage.getItem(KEY) || '[]')
+  } catch {}
+  return []
+}
+
+export function clearUnlocked() {
+  try {
+    localStorage.removeItem(KEY)
   } catch {}
 }

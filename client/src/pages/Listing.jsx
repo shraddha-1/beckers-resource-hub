@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getAssets } from '../lib/api'
 import { getConfig, formatDate, getUniqueSponsors } from '../lib/assetHelpers'
+import { isUnlocked } from '../lib/unlocks'
 import Badge from '../components/Badge'
 import { trackView } from '../lib/recentlyViewed'
 
@@ -36,7 +37,6 @@ export default function Listing() {
     ? sponsorParam.split(',').filter(Boolean)
     : []
 
-  // Sync localSearch when URL q param changes externally
   useEffect(() => {
     setLocalSearch(search)
   }, [search])
@@ -48,7 +48,6 @@ export default function Listing() {
       .finally(() => setLoading(false))
   }, [])
 
-  // Debounce writes directly to URL — does not depend on updateParams
   const handleSearchChange = (val) => {
     setLocalSearch(val)
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -62,7 +61,6 @@ export default function Listing() {
     }, 300)
   }
 
-  // Stable param updater — functional form is never stale
   const updateParams = (updates) => {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev)
@@ -189,8 +187,7 @@ export default function Listing() {
           Resource library
         </h1>
         <p className="bh-body-lg" style={{
-          color: 'var(--bh-gray-700)',
-          maxWidth: '60ch',
+          color: 'var(--bh-gray-700)', maxWidth: '60ch',
         }}>
           Webinars, whitepapers, and podcasts curated for hospital
           executives. Pick a format below or refine by sponsor.
@@ -729,15 +726,16 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
 // ── AssetRow ─────────────────────────────────────────────────────
 
 function AssetRow({ asset }) {
-  const cfg  = getConfig(asset.assetType)
-  const date = formatDate(asset.executionDate || asset.expirationDate)
+  const cfg      = getConfig(asset.assetType)
+  const date     = formatDate(asset.executionDate || asset.expirationDate)
+  const unlocked = isUnlocked(asset.id)
 
   return (
     <Link
       to={`/assets/${asset.id}`}
       onClick={() => trackView(asset.id)}
       className="bh-card-hover asset-row"
-      aria-label={`${cfg.label}: ${asset.name}`}
+      aria-label={`${cfg.label}: ${asset.name}${unlocked ? ', already registered' : ''}`}
       style={{
         display: 'grid', gridTemplateColumns: '1fr auto',
         gap: 24, alignItems: 'center',
@@ -802,9 +800,22 @@ function AssetRow({ asset }) {
             style={{ whiteSpace: 'nowrap', color: 'var(--bh-gray-700)' }}
           >{date}</time>
         )}
-        <span className="bh-label" style={{ color: 'var(--bh-red-800)' }}>
-          {cfg.verb} →
-        </span>
+        {unlocked ? (
+          <span className="bh-label" style={{
+            color: 'var(--bh-navy-800)',
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+          }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            Registered
+          </span>
+        ) : (
+          <span className="bh-label" style={{ color: 'var(--bh-red-800)' }}>
+            {cfg.verb} →
+          </span>
+        )}
       </div>
     </Link>
   )
