@@ -545,3 +545,8 @@ h1, h2, h3 { text-wrap: balance; }
     grid-template-columns: 1fr 1fr !important;
   }
 }
+@media (max-width: 900px) {
+  .decisions-layout {
+    grid-template-columns: 1fr !important;
+  }
+}

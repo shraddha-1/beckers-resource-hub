@@ -1,32 +1,26 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getAsset, getAssets, signUp } from '../lib/api'
 import { getConfig, formatDate } from '../lib/assetHelpers'
-import { markUnlocked } from '../lib/unlocks'
 import AssetBrief from '../components/AssetBrief'
 import Badge from '../components/Badge'
-import GoogleAuthButton from '../components/GoogleAuthButton'
-
-
 
 export default function Signup() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const prefillEmail = searchParams.get('prefill') || ''
-  
-  const [asset, setAsset] = useState(null)
-  const [loading, setLoading] = useState(true)
+
+  const [asset, setAsset]       = useState(null)
+  const [loading, setLoading]   = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [confirmed, setConfirmed] = useState(null)
-  const [apiError, setApiError] = useState(null)
-  const [related, setRelated] = useState([])
+  const [confirmed, setConfirmed]   = useState(null)
+  const [apiError, setApiError]     = useState(null)
+  const [related, setRelated]       = useState([])
 
   const [form, setForm] = useState({
     firstName: '', lastName: '',
     email: '', jobTitle: '', companyName: '',
   })
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors]   = useState({})
   const [touched, setTouched] = useState({})
 
   useEffect(() => {
@@ -38,6 +32,7 @@ export default function Signup() {
     setErrors({})
     setTouched({})
 
+    // Pre-fill from previous signup if available
     let initial = { firstName: '', lastName: '', email: '', jobTitle: '', companyName: '' }
     try {
       const saved = JSON.parse(localStorage.getItem('bh_person') || 'null')
@@ -50,11 +45,7 @@ export default function Signup() {
           companyName: saved.companyName || '',
         }
       }
-    } catch {
-      // localStorage may be unavailable in private browsing.
-    }
-
-    if (prefillEmail && !initial.email) initial.email = prefillEmail
+    } catch {}
 
     setForm(initial)
 
@@ -62,7 +53,7 @@ export default function Signup() {
       .then(setAsset)
       .catch(() => navigate('/assets'))
       .finally(() => setLoading(false))
-  }, [id, navigate, prefillEmail])
+  }, [id, navigate])
 
   const validateField = (name, value) => {
     if (!value.trim()) return 'Required'
@@ -84,28 +75,6 @@ export default function Signup() {
     }
   }
 
-  const finalizeSuccess = async (result, contact) => {
-    try {
-      localStorage.setItem('bh_person', JSON.stringify(contact))
-    } catch {
-      // localStorage may be unavailable; non-blocking.
-    }
-    markUnlocked(id)
-    setConfirmed(result)
-    try {
-      const all = await getAssets()
-      const others = all.filter(a =>
-        a.id !== id && (
-          a.assetType === asset?.assetType ||
-          a.sponsorName === asset?.sponsorName
-        )
-      ).slice(0, 3)
-      setRelated(others)
-    } catch {
-      // Related assets are decorative — failure is non-fatal.
-    }
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     const fields = ['firstName', 'lastName', 'email', 'jobTitle', 'companyName']
@@ -124,28 +93,26 @@ export default function Signup() {
     setSubmitting(true)
     try {
       const result = await signUp(id, form)
-      await finalizeSuccess(result, form)
-    } catch (err) {
-      setApiError(err.message)
-    } finally {
-      setSubmitting(false)
-    }
-  }
 
-  const handleGoogleSuccess = async (profile) => {
-    setApiError(null)
-    setSubmitting(true)
-    const contact = {
-      firstName:   profile.firstName   || '',
-      lastName:    profile.lastName    || '',
-      email:       profile.email       || '',
-      jobTitle:    form.jobTitle       || 'Healthcare Professional',
-      companyName: form.companyName    || 'Becker\'s Reader',
-    }
-    try {
-      const result = await signUp(id, contact)
-      setForm(contact)
-      await finalizeSuccess(result, contact)
+      // Save person details for future signups — pre-fill next time
+      try {
+        localStorage.setItem('bh_person', JSON.stringify(form))
+      } catch {}
+
+      setConfirmed(result)
+
+      // Fetch related assets — bonus requirement
+      try {
+        const all = await getAssets()
+        const others = all.filter(a =>
+          a.id !== id && (
+            a.assetType === asset?.assetType ||
+            a.sponsorName === asset?.sponsorName
+          )
+        ).slice(0, 3)
+        setRelated(others)
+      } catch {}
+
     } catch (err) {
       setApiError(err.message)
     } finally {
@@ -161,22 +128,22 @@ export default function Signup() {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 32px 80px' }}>
       <Link
-        to={`/assets/${id}`}
+        to="/assets"
         className="btn-text"
         style={{
           display: 'inline-flex', alignItems: 'center',
           gap: 4, marginBottom: 24, fontSize: 13,
         }}
       >
-        ← Back to resource
+        ← Back to library
       </Link>
 
       <div className="asset-detail-grid">
-        {/* LEFT — same editorial brief used on the asset detail page */}
+        {/* LEFT — asset brief */}
         <AssetBrief asset={asset} />
 
-        {/* RIGHT — sticky form or confirmation */}
-        <div className="gate-sticky" aria-label={confirmed ? 'Registration confirmed' : 'Registration form'}>
+        {/* RIGHT — form or confirmation */}
+        <div className="gate-sticky">
           {confirmed ? (
             <ConfirmationState
               confirmed={confirmed}
@@ -184,177 +151,125 @@ export default function Signup() {
               related={related}
             />
           ) : (
-            <SignupForm
-              cfg={cfg}
-              form={form}
-              errors={errors}
-              apiError={apiError}
-              submitting={submitting}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              onSubmit={handleSubmit}
-              onGoogleSuccess={handleGoogleSuccess}
-            />
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Form ─────────────────────────────────────────────────────────
-
-function SignupForm({
-  cfg, form, errors, apiError, submitting,
-  onChange, onBlur, onSubmit, onGoogleSuccess,
-}) {
-  return (
-    <div style={{
-      background: 'var(--color-bg)',
-      border: '1px solid var(--color-border)',
-      borderRadius: 'var(--radius-lg)',
-      overflow: 'hidden',
-    }}>
-      <div className="dark-surface" style={{
-        background: 'var(--bh-navy-800)',
-        padding: '20px 24px',
-      }}>
-        <h2 className="bh-h4" style={{ color: '#fff', marginBottom: 4 }}>
-          {cfg.verb === 'Register' ? 'Register for this webinar'
-            : cfg.verb === 'Download' ? 'Download this whitepaper'
-              : cfg.verb === 'Listen' ? 'Access this podcast'
-                : 'Access this resource'}
-        </h2>
-        <p className="bh-small" style={{ color: 'var(--bh-ice-100)' }}>
-          We'll save your details so you can unlock more resources without filling this out again.
-        </p>
-      </div>
-
-      <div style={{ padding: 24 }}>
-        <GoogleAuthButton
-          onSuccess={onGoogleSuccess}
-          disabled={submitting}
-          label="Continue with Google"
-        />
-
-        <div
-          aria-hidden="true"
-          className="bh-kicker"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            color: 'var(--bh-gray-500)',
-            margin: '18px 0 14px',
-          }}
-        >
-          <span style={{ flex: 1, height: 1, background: 'var(--bh-gray-200)' }} />
-          <span>or continue with email</span>
-          <span style={{ flex: 1, height: 1, background: 'var(--bh-gray-200)' }} />
-        </div>
-
-        <form onSubmit={onSubmit} noValidate aria-label="Registration form">
-          {apiError && (
-            <div role="alert" style={{
-              padding: '12px 14px',
-              background: '#FAEAEA',
-              border: '1px solid var(--bh-red-600)',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: 13, color: 'var(--bh-red-800)',
-              marginBottom: 16,
-            }}>{apiError}</div>
-          )}
-
-          <fieldset style={{ border: 'none', padding: 0, margin: '0 0 18px' }}>
-            <legend className="bh-kicker" style={{
-              color: 'var(--bh-gray-700)',
-              marginBottom: 10, padding: 0,
-            }}>About you</legend>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div className="name-fields" style={{
-                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12,
+            <div style={{
+              background: '#fff',
+              border: '1px solid var(--bh-ice-200)',
+              borderRadius: 'var(--radius-lg)',
+              overflow: 'hidden',
+            }}>
+              {/* Form header */}
+              <div style={{
+                background: 'var(--bh-navy-800)',
+                padding: '20px 24px',
               }}>
-                <Field
-                  name="firstName" label="First name"
-                  value={form.firstName} error={errors.firstName}
-                  autoComplete="given-name"
-                  onChange={v => onChange('firstName', v)}
-                  onBlur={() => onBlur('firstName')}
-                />
-                <Field
-                  name="lastName" label="Last name"
-                  value={form.lastName} error={errors.lastName}
-                  autoComplete="family-name"
-                  onChange={v => onChange('lastName', v)}
-                  onBlur={() => onBlur('lastName')}
-                />
+                <h2 className="bh-h4" style={{ color: '#fff', marginBottom: 6 }}>
+                  {cfg.verb === 'Register' ? 'Register for this webinar'
+                    : cfg.verb === 'Download' ? 'Download this whitepaper'
+                    : cfg.verb === 'Listen' ? 'Access this podcast'
+                    : 'Access this resource'}
+                </h2>
+                <p className="bh-small" style={{ color: 'var(--bh-ice-100)' }}>
+                  Free. Your details are saved so future signups take seconds.
+                </p>
               </div>
-              <Field
-                name="email" label="Work email" type="email"
-                value={form.email} error={errors.email}
-                autoComplete="email"
-                onChange={v => onChange('email', v)}
-                onBlur={() => onBlur('email')}
-              />
+
+              {/* Form body */}
+              <form
+                onSubmit={handleSubmit}
+                noValidate
+                aria-label="Registration form"
+                style={{ padding: 24 }}
+              >
+                {apiError && (
+                  <div role="alert" style={{
+                    padding: '12px 14px',
+                    background: '#FAEAEA',
+                    border: '1px solid var(--bh-red-600)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: 13, color: 'var(--bh-red-800)',
+                    marginBottom: 16,
+                  }}>{apiError}</div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+                  {/* Name row */}
+                  <div className="name-fields" style={{
+                    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12,
+                  }}>
+                    <Field
+                      name="firstName" label="First name"
+                      value={form.firstName} error={errors.firstName}
+                      autoComplete="given-name"
+                      onChange={v => handleChange('firstName', v)}
+                      onBlur={() => handleBlur('firstName')}
+                    />
+                    <Field
+                      name="lastName" label="Last name"
+                      value={form.lastName} error={errors.lastName}
+                      autoComplete="family-name"
+                      onChange={v => handleChange('lastName', v)}
+                      onBlur={() => handleBlur('lastName')}
+                    />
+                  </div>
+
+                  <Field
+                    name="email" label="Work email" type="email"
+                    value={form.email} error={errors.email}
+                    autoComplete="email"
+                    onChange={v => handleChange('email', v)}
+                    onBlur={() => handleBlur('email')}
+                  />
+
+                  <Field
+                    name="jobTitle" label="Job title"
+                    value={form.jobTitle} error={errors.jobTitle}
+                    autoComplete="organization-title"
+                    onChange={v => handleChange('jobTitle', v)}
+                    onBlur={() => handleBlur('jobTitle')}
+                  />
+
+                  <Field
+                    name="companyName" label="Company name"
+                    value={form.companyName} error={errors.companyName}
+                    autoComplete="organization"
+                    onChange={v => handleChange('companyName', v)}
+                    onBlur={() => handleBlur('companyName')}
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="btn btn-primary"
+                    style={{
+                      width: '100%',
+                      fontSize: 15, padding: '13px',
+                      marginTop: 4,
+                      opacity: submitting ? 0.6 : 1,
+                      cursor: submitting ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {submitting ? 'Submitting…' : `${cfg.verb} now`}
+                  </button>
+
+                  <p className="bh-meta" style={{
+                    color: 'var(--bh-gray-700)',
+                    textAlign: 'center', lineHeight: 1.5,
+                  }}>
+                    By registering, you agree to Becker's Healthcare{' '}
+                    <a href="#" style={{ color: 'var(--bh-red-800)' }}>
+                      terms of service and privacy policy
+                    </a>.
+                  </p>
+                </div>
+              </form>
             </div>
-          </fieldset>
-
-          <fieldset style={{ border: 'none', padding: 0, margin: '0 0 18px' }}>
-            <legend className="bh-kicker" style={{
-              color: 'var(--bh-gray-700)',
-              marginBottom: 10, padding: 0,
-            }}>About your work</legend>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Field
-                name="jobTitle" label="Job title"
-                value={form.jobTitle} error={errors.jobTitle}
-                autoComplete="organization-title"
-                onChange={v => onChange('jobTitle', v)}
-                onBlur={() => onBlur('jobTitle')}
-              />
-              <Field
-                name="companyName" label="Company name"
-                value={form.companyName} error={errors.companyName}
-                autoComplete="organization"
-                onChange={v => onChange('companyName', v)}
-                onBlur={() => onBlur('companyName')}
-              />
-            </div>
-          </fieldset>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn btn-primary"
-            style={{
-              width: '100%',
-              fontSize: 15, padding: '13px',
-              opacity: submitting ? 0.6 : 1,
-              cursor: submitting ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {submitting ? 'Submitting…' : `${cfg.verb} now`}
-          </button>
-
-          <p className="bh-meta" style={{
-            color: 'var(--bh-gray-700)',
-            textAlign: 'center', lineHeight: 1.5,
-            marginTop: 14,
-          }}>
-            By continuing, you agree to Becker's Healthcare{' '}
-            <a href="#" style={{ color: 'var(--color-accent)' }}>
-              terms of service and privacy policy
-            </a>.
-          </p>
-        </form>
+          )}
+        </div>
       </div>
     </div>
   )
 }
-
-// ── Field ────────────────────────────────────────────────────────
 
 function Field({ name, label, type = 'text', value, error, onChange, onBlur, autoComplete }) {
   return (
@@ -363,14 +278,13 @@ function Field({ name, label, type = 'text', value, error, onChange, onBlur, aut
         htmlFor={`field-${name}`}
         style={{
           fontFamily: 'var(--font-sans)',
-          fontSize: 'var(--fs-xs)',
-          fontWeight: 'var(--fw-semibold)',
+          fontSize: 12, fontWeight: 600,
           color: error ? 'var(--bh-red-900)' : 'var(--bh-gray-700)',
         }}
       >
         {label}
         {error && (
-          <span role="alert" style={{ marginLeft: 6, fontWeight: 'var(--fw-regular)' }}>
+          <span role="alert" style={{ marginLeft: 6, fontWeight: 400 }}>
             — {error}
           </span>
         )}
@@ -381,7 +295,6 @@ function Field({ name, label, type = 'text', value, error, onChange, onBlur, aut
         value={value}
         autoComplete={autoComplete}
         aria-invalid={!!error}
-        aria-describedby={error ? `error-${name}` : undefined}
         onChange={e => onChange(e.target.value)}
         onBlur={onBlur}
         style={{
@@ -401,18 +314,14 @@ function Field({ name, label, type = 'text', value, error, onChange, onBlur, aut
   )
 }
 
-// ── Confirmation ─────────────────────────────────────────────────
-
 function ConfirmationState({ confirmed, asset, related }) {
-
-  const isWebinar = asset.assetType === 'Live Webinar'
-  const ctaLabel = isWebinar ? 'View the event details' : 'Read now'
+  const cfg = getConfig(asset.assetType)
 
   return (
     <div>
       <div style={{
-        background: 'var(--color-bg)',
-        border: '1px solid var(--color-border)',
+        background: '#fff',
+        border: '1px solid var(--bh-ice-200)',
         borderRadius: 'var(--radius-lg)',
         padding: '32px 24px',
         textAlign: 'center',
@@ -431,29 +340,24 @@ function ConfirmationState({ confirmed, asset, related }) {
           </svg>
         </div>
 
-        <h2 className="bh-h3" style={{ marginBottom: 8 }}>You're in</h2>
+        <h2 className="bh-h3" style={{ marginBottom: 8 }}>You're registered</h2>
 
-        <p className="bh-small" style={{
-          color: 'var(--bh-gray-700)',
-          marginBottom: 18,
-        }}>
+        <p className="bh-small" style={{ color: 'var(--bh-gray-700)', marginBottom: 18 }}>
           Confirmed for <strong>{asset.name}</strong>
         </p>
 
         <Link
-          to={`/assets/${asset.id}`}
+          to="/assets"
           className="btn btn-primary"
           style={{ fontSize: 14, padding: '11px 22px' }}
-        >{ctaLabel} →</Link>
+        >
+          Browse more resources →
+        </Link>
 
         <time
           dateTime={confirmed.signupDate}
           className="bh-meta"
-          style={{
-            display: 'block',
-            color: 'var(--bh-gray-700)',
-            marginTop: 16,
-          }}
+          style={{ display: 'block', color: 'var(--bh-gray-700)', marginTop: 16 }}
         >
           Registered {new Date(confirmed.signupDate).toLocaleDateString('en-US', {
             month: 'long', day: 'numeric', year: 'numeric',
@@ -462,23 +366,27 @@ function ConfirmationState({ confirmed, asset, related }) {
       </div>
 
       {related.length > 0 && (
-        <section aria-labelledby="signup-related-heading">
-          <h3 id="signup-related-heading" className="bh-kicker" style={{ marginBottom: 12 }}>
+        <section aria-labelledby="related-heading">
+          <h3
+            id="related-heading"
+            className="bh-kicker"
+            style={{ marginBottom: 12 }}
+          >
             You might also like
           </h3>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {related.map(a => {
-              const c = getConfig(a.assetType)
+              const c   = getConfig(a.assetType)
               const date = formatDate(a.executionDate || a.expirationDate)
               return (
                 <li key={a.id}>
                   <Link
-                    to={`/assets/${a.id}`}
+                    to={`/assets/${a.id}/signup`}
                     className="bh-card-hover"
                     aria-label={`${c.label}: ${a.name}`}
                     style={{
                       display: 'block',
-                      background: 'var(--color-bg)',
+                      background: '#fff',
                       border: '1px solid var(--bh-ice-200)',
                       borderRadius: 'var(--radius-md)',
                       padding: '14px 16px',
@@ -489,7 +397,7 @@ function ConfirmationState({ confirmed, asset, related }) {
                       <Badge type={a.assetType} />
                     </div>
                     <h4 className="bh-headline" style={{
-                      fontSize: 'var(--fs-md)',
+                      fontSize: 'var(--fs-sm)',
                       marginBottom: 6,
                     }}>{a.name}</h4>
                     <div style={{
@@ -517,14 +425,13 @@ function ConfirmationState({ confirmed, asset, related }) {
   )
 }
 
-// ── Skeleton ─────────────────────────────────────────────────────
-
 function LoadingSkeleton() {
   return (
     <div role="status" aria-label="Loading"
       style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 32px 80px' }}
     >
-      <div className="skeleton" style={{ height: 14, width: 220, marginBottom: 24 }} />
+      <span className="sr-only">Loading...</span>
+      <div className="skeleton" style={{ height: 14, width: 120, marginBottom: 24 }} />
       <div className="asset-detail-grid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div className="skeleton" style={{ height: 22, width: 120 }} />
@@ -538,6 +445,7 @@ function LoadingSkeleton() {
           <div className="skeleton" style={{ height: 44, width: '100%' }} />
           <div className="skeleton" style={{ height: 44, width: '100%' }} />
           <div className="skeleton" style={{ height: 44, width: '100%' }} />
+          <div className="skeleton" style={{ height: 48, width: '100%' }} />
         </div>
       </div>
     </div>
