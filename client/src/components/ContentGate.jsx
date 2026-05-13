@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import GoogleAuthButton from './GoogleAuthButton'
 
 // Conversion gate that lives in the right column of the asset detail
 // page. Order is intentional: the lowest-friction path (Google) sits
