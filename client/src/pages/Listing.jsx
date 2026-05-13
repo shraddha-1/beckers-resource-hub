@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getAssets } from '../lib/api'
 import { getConfig, formatDate, getUniqueSponsors } from '../lib/assetHelpers'
@@ -13,37 +13,33 @@ const SORT_OPTIONS = [
 ]
 
 const PAGE_SIZE = 5
-
-// Cap the sponsor list at this many visible options so the panel
-// stays performant when the catalog grows past ~200 sponsors. The
-// search input is the primary affordance for finding the rest.
 const SPONSOR_VISIBLE_CAP = 50
-
-// Cap the marquee at this many chips so the loop completes in a
-// reasonable amount of time even if the catalog is huge. Search is
-// the way to get past the cap.
 const MARQUEE_CAP = 80
 
 export default function Listing() {
-  const [assets, setAssets]     = useState([])
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState(null)
+  const [assets, setAssets]   = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError]     = useState(null)
   const [searchParams, setSearchParams] = useSearchParams()
   const [refineOpen, setRefineOpen]     = useState(false)
   const [sponsorQuery, setSponsorQuery] = useState('')
+  const [localSearch, setLocalSearch]   = useState('')
+  const debounceRef = useRef(null)
 
-  const activeType   = searchParams.get('type')   || 'all'
-  const search       = searchParams.get('q')      || ''
-  const sort         = searchParams.get('sort')   || 'modified'
+  const activeType   = searchParams.get('type')    || 'all'
+  const search       = searchParams.get('q')       || ''
+  const sort         = searchParams.get('sort')    || 'modified'
   const sponsorParam = searchParams.get('sponsor') || ''
   const page         = parseInt(searchParams.get('page') || '1', 10)
 
-  const activeSponsors = useMemo(
-    () => sponsorParam ? sponsorParam.split(',').filter(Boolean) : [],
-    [sponsorParam]
-  )
+  const activeSponsors = sponsorParam
+    ? sponsorParam.split(',').filter(Boolean)
+    : []
 
-  const [localSearch, setLocalSearch] = useState(search)
+  // Sync localSearch when URL q param changes externally
+  useEffect(() => {
+    setLocalSearch(search)
+  }, [search])
 
   useEffect(() => {
     getAssets()
@@ -52,11 +48,22 @@ export default function Listing() {
       .finally(() => setLoading(false))
   }, [])
 
-  // updateParams is stable across renders because it relies on the
-  // function form of setSearchParams — no need to thread searchParams
-  // through the dep array. Declared up here so the debounce effect
-  // below can reference it.
-  const updateParams = useCallback((updates) => {
+  // Debounce writes directly to URL — does not depend on updateParams
+  const handleSearchChange = (val) => {
+    setLocalSearch(val)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev)
+        if (val) { next.set('q', val) } else { next.delete('q') }
+        next.delete('page')
+        return next
+      })
+    }, 300)
+  }
+
+  // Stable param updater — functional form is never stale
+  const updateParams = (updates) => {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev)
       Object.entries(updates).forEach(([k, v]) => {
@@ -68,16 +75,7 @@ export default function Listing() {
       })
       return next
     })
-  }, [setSearchParams])
-
-  // Debounce the free-text search; only push to the URL after 300ms
-  // so we don't rerender the result list on every keystroke.
-  useEffect(() => {
-    const t = setTimeout(() => {
-      updateParams({ q: localSearch || undefined, page: undefined })
-    }, 300)
-    return () => clearTimeout(t)
-  }, [localSearch, updateParams])
+  }
 
   const allSponsors = useMemo(() => getUniqueSponsors(assets), [assets])
 
@@ -87,9 +85,6 @@ export default function Listing() {
     return c
   }, [assets])
 
-  // Filter the sponsor list against the ephemeral search query. Always
-  // include currently-selected sponsors at the top so the user can see
-  // and remove them even if they no longer match the query.
   const filteredSponsors = useMemo(() => {
     const q = sponsorQuery.trim().toLowerCase()
     if (!q) return allSponsors
@@ -98,13 +93,8 @@ export default function Listing() {
 
   const visibleSponsors = filteredSponsors.slice(0, SPONSOR_VISIBLE_CAP)
   const hiddenCount     = Math.max(0, filteredSponsors.length - visibleSponsors.length)
-
-  // When the search is empty, the chip ticker shows the full catalog
-  // (capped) on an auto-scrolling loop. When the visitor starts
-  // typing, the loop switches off and the static filtered list takes
-  // over so they can scan and click.
-  const isSearching   = sponsorQuery.trim().length > 0
-  const marqueeChips  = allSponsors.slice(0, MARQUEE_CAP)
+  const isSearching     = sponsorQuery.trim().length > 0
+  const marqueeChips    = allSponsors.slice(0, MARQUEE_CAP)
 
   const filtered = useMemo(() => {
     let r = [...assets]
@@ -135,16 +125,16 @@ export default function Listing() {
     currentPage * PAGE_SIZE
   )
 
-  const setType = useCallback(type => {
+  const setType = (type) => {
     updateParams({ type: type === 'all' ? undefined : type, page: undefined })
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [updateParams])
+  }
 
-  const setSort = useCallback(val => {
+  const setSort = (val) => {
     updateParams({ sort: val === 'modified' ? undefined : val, page: undefined })
-  }, [updateParams])
+  }
 
-  const toggleSponsor = useCallback((name) => {
+  const toggleSponsor = (name) => {
     const next = activeSponsors.includes(name)
       ? activeSponsors.filter(s => s !== name)
       : [...activeSponsors, name]
@@ -152,12 +142,12 @@ export default function Listing() {
       sponsor: next.length > 0 ? next.join(',') : undefined,
       page: undefined,
     })
-  }, [activeSponsors, updateParams])
+  }
 
-  const goToPage = useCallback(p => {
+  const goToPage = (p) => {
     updateParams({ page: p === 1 ? undefined : p })
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [updateParams])
+  }
 
   const clearAll = () => {
     setLocalSearch('')
@@ -211,12 +201,7 @@ export default function Listing() {
       <div
         role="group"
         aria-label="Filter by content type"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 8,
-          marginBottom: 20,
-        }}
+        style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}
       >
         <button
           type="button"
@@ -239,13 +224,11 @@ export default function Listing() {
         ))}
       </div>
 
-      {/* Search + Sort + Refine row */}
+      {/* Search + Sort + Refine */}
       <div className="listing-toolbar" style={{
         display: 'grid',
         gridTemplateColumns: '1fr auto auto',
-        gap: 12,
-        marginBottom: 16,
-        alignItems: 'center',
+        gap: 12, marginBottom: 16, alignItems: 'center',
       }}>
         <div style={{ position: 'relative' }}>
           <label htmlFor="search-input" className="sr-only">
@@ -254,8 +237,7 @@ export default function Listing() {
           <svg aria-hidden="true" style={{
             position: 'absolute', left: 14, top: '50%',
             transform: 'translateY(-50%)',
-            width: 16, height: 16,
-            color: 'var(--bh-gray-700)',
+            width: 16, height: 16, color: 'var(--bh-gray-700)',
             pointerEvents: 'none',
           }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="7"/>
@@ -266,14 +248,13 @@ export default function Listing() {
             type="search"
             placeholder="Search by title, sponsor, or topic"
             value={localSearch}
-            onChange={e => setLocalSearch(e.target.value)}
+            onChange={e => handleSearchChange(e.target.value)}
             aria-label="Search resources"
             style={{
               width: '100%',
               padding: '11px 40px 11px 42px',
               fontFamily: 'var(--font-sans)',
-              fontSize: 15,
-              color: 'var(--bh-gray-900)',
+              fontSize: 15, color: 'var(--bh-gray-900)',
               background: '#fff',
               border: '1.5px solid var(--bh-ice-300)',
               borderRadius: 'var(--radius-md)',
@@ -282,7 +263,7 @@ export default function Listing() {
           />
           {localSearch && (
             <button
-              onClick={() => setLocalSearch('')}
+              onClick={() => handleSearchChange('')}
               aria-label="Clear search"
               style={{
                 position: 'absolute', right: 12, top: '50%',
@@ -331,7 +312,7 @@ export default function Listing() {
         </button>
       </div>
 
-      {/* Refine panel — progressive disclosure */}
+      {/* Refine panel */}
       <div
         id="refine-panel"
         hidden={!refineOpen}
@@ -339,12 +320,9 @@ export default function Listing() {
           background: 'var(--bh-ice-050)',
           border: '1px solid var(--bh-ice-200)',
           borderRadius: 'var(--radius-md)',
-          padding: '20px 22px',
-          marginBottom: 20,
+          padding: '20px 22px', marginBottom: 20,
         }}
       >
-        {/* Sponsor multi-select — auto-scrolling marquee by default,
-            static filtered chip list while searching. */}
         <fieldset style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
           <legend className="bh-kicker" style={{ marginBottom: 10, padding: 0 }}>
             Sponsors{activeSponsors.length > 0 ? ` (${activeSponsors.length})` : ''}
@@ -355,11 +333,8 @@ export default function Listing() {
               role="list"
               aria-label="Selected sponsors"
               style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 6,
-                paddingBottom: 12,
-                marginBottom: 12,
+                display: 'flex', flexWrap: 'wrap', gap: 6,
+                paddingBottom: 12, marginBottom: 12,
                 borderBottom: '1px solid var(--bh-ice-200)',
               }}
             >
@@ -371,19 +346,14 @@ export default function Listing() {
                   onClick={() => toggleSponsor(name)}
                   aria-label={`Remove ${name} filter`}
                   style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
                     fontFamily: 'var(--font-sans)',
-                    fontSize: 12,
-                    fontWeight: 700,
+                    fontSize: 12, fontWeight: 700,
                     padding: '5px 6px 5px 12px',
                     border: '1.5px solid var(--bh-red-800)',
                     borderRadius: 'var(--radius-pill)',
                     background: 'var(--bh-red-800)',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    minHeight: 28,
+                    color: '#fff', cursor: 'pointer', minHeight: 28,
                   }}
                 >
                   <span>{name}</span>
@@ -399,9 +369,6 @@ export default function Listing() {
             </div>
           )}
 
-          {/* Sponsor search input — ephemeral, doesn't write to URL.
-              Typing into it switches the chip view from marquee to a
-              static filtered list. */}
           <div style={{ position: 'relative', marginBottom: 12 }}>
             <label htmlFor="sponsor-search" className="sr-only">
               Filter the sponsor list
@@ -409,8 +376,7 @@ export default function Listing() {
             <svg aria-hidden="true" style={{
               position: 'absolute', left: 12, top: '50%',
               transform: 'translateY(-50%)',
-              width: 14, height: 14,
-              color: 'var(--bh-gray-700)',
+              width: 14, height: 14, color: 'var(--bh-gray-700)',
               pointerEvents: 'none',
             }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="7"/>
@@ -426,13 +392,11 @@ export default function Listing() {
                 width: '100%',
                 padding: '9px 32px 9px 34px',
                 fontFamily: 'var(--font-sans)',
-                fontSize: 13,
-                color: 'var(--bh-gray-900)',
+                fontSize: 13, color: 'var(--bh-gray-900)',
                 background: '#fff',
                 border: '1.5px solid var(--bh-ice-300)',
                 borderRadius: 'var(--radius-sm)',
-                outline: 'none',
-                minHeight: 38,
+                outline: 'none', minHeight: 38,
               }}
             />
             {sponsorQuery && (
@@ -453,9 +417,6 @@ export default function Listing() {
             )}
           </div>
 
-          {/* Default state: marquee carousel.
-              Search active: static filtered list (capped at 50 +
-              "showing N of M" tail). */}
           {isSearching ? (
             filteredSponsors.length === 0 ? (
               <p className="bh-small" style={{ color: 'var(--bh-gray-700)' }}>
@@ -464,12 +425,8 @@ export default function Listing() {
             ) : (
               <>
                 <div style={{
-                  maxHeight: 240,
-                  overflowY: 'auto',
-                  paddingRight: 4,
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 6,
+                  maxHeight: 240, overflowY: 'auto', paddingRight: 4,
+                  display: 'flex', flexWrap: 'wrap', gap: 6,
                 }}>
                   {visibleSponsors.map(name => (
                     <SponsorChip
@@ -482,8 +439,7 @@ export default function Listing() {
                 </div>
                 {hiddenCount > 0 && (
                   <p className="bh-meta" style={{ marginTop: 10 }}>
-                    Showing {visibleSponsors.length} of {filteredSponsors.length}
-                    {' '}— keep typing to narrow.
+                    Showing {visibleSponsors.length} of {filteredSponsors.length} — keep typing to narrow.
                   </p>
                 )}
               </>
@@ -536,8 +492,7 @@ export default function Listing() {
       {/* Error */}
       {error && (
         <div role="alert" style={{
-          padding: '16px 20px',
-          background: '#FAEAEA',
+          padding: '16px 20px', background: '#FAEAEA',
           border: '2px solid var(--bh-red-800)',
           borderRadius: 'var(--radius-md)',
           color: 'var(--bh-red-900)',
@@ -588,10 +543,7 @@ export default function Listing() {
           borderRadius: 'var(--radius-lg)',
         }}>
           <h2 className="bh-h3" style={{ marginBottom: 12 }}>No resources found</h2>
-          <p className="bh-body" style={{
-            color: 'var(--bh-gray-700)',
-            marginBottom: 24,
-          }}>
+          <p className="bh-body" style={{ color: 'var(--bh-gray-700)', marginBottom: 24 }}>
             Try adjusting your filters or clearing the search.
           </p>
           <button onClick={clearAll} className="btn btn-primary">
@@ -627,8 +579,7 @@ export default function Listing() {
   )
 }
 
-// ── SponsorChip ───────────────────────────────────────────────────
-// Single sponsor pill used in both the marquee and the static
+// ── SponsorChip ──────────────────────────────────────────────────
 
 function SponsorChip({ name, selected, onToggle, interactive = true }) {
   return (
@@ -640,8 +591,7 @@ function SponsorChip({ name, selected, onToggle, interactive = true }) {
       tabIndex={interactive ? undefined : -1}
       style={{
         fontFamily: 'var(--font-sans)',
-        fontSize: 12,
-        fontWeight: selected ? 700 : 500,
+        fontSize: 12, fontWeight: selected ? 700 : 500,
         padding: '6px 12px',
         border: '1.5px solid',
         borderColor: selected ? 'var(--bh-red-800)' : 'var(--bh-ice-300)',
@@ -650,16 +600,13 @@ function SponsorChip({ name, selected, onToggle, interactive = true }) {
         color: selected ? '#fff' : 'var(--bh-navy-800)',
         cursor: interactive ? 'pointer' : 'default',
         transition: 'all 0.15s',
-        minHeight: 32,
-        whiteSpace: 'nowrap',
+        minHeight: 32, whiteSpace: 'nowrap',
       }}
     >{name}</button>
   )
 }
 
-// ── SponsorMarquee ────────────────────────────────────────────────
-// Auto-scrolling chip ticker. Renders the chip set twice in a single
-// inline-flex track and animates the track by -50% so the duplicate
+// ── SponsorMarquee ───────────────────────────────────────────────
 
 function SponsorMarquee({ sponsors, activeSponsors, onToggle }) {
   if (sponsors.length === 0) return null
@@ -692,7 +639,8 @@ function SponsorMarquee({ sponsors, activeSponsors, onToggle }) {
   )
 }
 
-// ── Pagination ────────────────────────────────────────────────────
+// ── Pagination ───────────────────────────────────────────────────
+
 function Pagination({ currentPage, totalPages, onPageChange }) {
   const getPages = () => {
     const pages = []
@@ -714,8 +662,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
     const isActive   = opts.active
     const isDisabled = opts.disabled
     const isDots     = opts.dots
-    const key = opts.key
-      ?? (isDots ? `dots-${targetPage}` : `page-${targetPage}`)
+    const key = opts.key ?? (isDots ? `dots-${targetPage}` : `page-${targetPage}`)
 
     return (
       <button
@@ -727,22 +674,17 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
         style={{
           fontFamily: 'var(--font-sans)',
           fontSize: 14, fontWeight: isActive ? 700 : 400,
-          padding: 0,
-          width: 40, height: 40,
+          padding: 0, width: 40, height: 40,
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           border: '1.5px solid',
           borderColor: isActive
             ? 'var(--bh-navy-800)'
-            : isDisabled || isDots
-              ? 'var(--bh-gray-200)'
-              : 'var(--bh-ice-300)',
+            : isDisabled || isDots ? 'var(--bh-gray-200)' : 'var(--bh-ice-300)',
           borderRadius: 'var(--radius-sm)',
           background: isActive ? 'var(--bh-navy-800)' : '#fff',
           color: isActive
             ? '#fff'
-            : isDisabled || isDots
-              ? 'var(--bh-gray-300)'
-              : 'var(--bh-navy-800)',
+            : isDisabled || isDots ? 'var(--bh-gray-300)' : 'var(--bh-navy-800)',
           cursor: isDisabled || isDots ? 'default' : 'pointer',
           transition: 'all 0.15s',
         }}
@@ -755,10 +697,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
   return (
     <nav
       aria-label="Pagination"
-      style={{
-        display: 'flex', alignItems: 'center',
-        justifyContent: 'center', gap: 6,
-      }}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
     >
       {pageBtn(
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -787,11 +726,10 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
   )
 }
 
-// ── AssetRow ──────────────────────────────────────────────────────
-// Whole-row link. The previous "View details" CTA was redundant once
+// ── AssetRow ─────────────────────────────────────────────────────
 
 function AssetRow({ asset }) {
-  const cfg = getConfig(asset.assetType)
+  const cfg  = getConfig(asset.assetType)
   const date = formatDate(asset.executionDate || asset.expirationDate)
 
   return (
@@ -801,10 +739,8 @@ function AssetRow({ asset }) {
       className="bh-card-hover asset-row"
       aria-label={`${cfg.label}: ${asset.name}`}
       style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr auto',
-        gap: 24,
-        alignItems: 'center',
+        display: 'grid', gridTemplateColumns: '1fr auto',
+        gap: 24, alignItems: 'center',
         background: '#fff',
         border: '1px solid var(--bh-ice-200)',
         borderRadius: 'var(--radius-lg)',
@@ -823,28 +759,20 @@ function AssetRow({ asset }) {
           </h2>
         </div>
 
-        <p className="bh-byline" style={{
-          color: 'var(--bh-gray-700)',
-          marginBottom: 8,
-        }}>
+        <p className="bh-byline" style={{ color: 'var(--bh-gray-700)', marginBottom: 8 }}>
           <span className="sr-only">Sponsored by </span>
           {asset.sponsorName}
         </p>
 
         <p className="bh-body" style={{
-          fontSize: 'var(--fs-sm)',
-          color: 'var(--bh-gray-700)',
+          fontSize: 'var(--fs-sm)', color: 'var(--bh-gray-700)',
           display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-          maxWidth: 700,
+          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+          overflow: 'hidden', maxWidth: 700,
         }}>{asset.description}</p>
 
         {asset.assetType === 'Live Webinar' && asset.speakers?.length > 0 && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 8, marginTop: 10,
-          }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
             <div aria-hidden="true" style={{
               width: 28, height: 28, borderRadius: '50%',
               background: 'var(--bh-ice-100)',

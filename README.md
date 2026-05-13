@@ -1,3 +1,7 @@
+**Live demo:** https://beckers-resource-hub.vercel.app
+**API:** https://beckers-resource-hub.onrender.com
+**Design Decision:** https://beckers-resource-hub.vercel.app/decisions
+
 # Becker's Resource Hub
 
 A content asset portal built for the Becker's Healthcare UX Engineer take-home. Browse, filter, and register for webinars, whitepapers, and podcasts curated for health system executives.
