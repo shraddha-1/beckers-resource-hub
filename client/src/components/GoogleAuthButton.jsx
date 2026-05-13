@@ -1,7 +1,5 @@
 // Google sign-in button. Visual is the official outlined variant per
-// Google's branding guidelines (white surface, gray border, black-ish
-// text, four-color G logo). The handler is mocked: in this take-home
-// there's no real OAuth, so clicking just resolves with a stub email.
+
 
 export default function GoogleAuthButton({ onSuccess, disabled, label = 'Continue with Google' }) {
   const handleClick = () => {
