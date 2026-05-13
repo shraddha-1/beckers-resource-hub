@@ -54,7 +54,6 @@ export default function ContentGate({ asset, onGoogleSuccess }) {
         flexDirection: 'column',
         gap: 14,
       }}>
-        <GoogleAuthButton onSuccess={onGoogleSuccess} />
 
         <div
           aria-hidden="true"
