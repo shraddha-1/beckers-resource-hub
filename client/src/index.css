@@ -550,3 +550,19 @@ h1, h2, h3 { text-wrap: balance; }
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Smooth page transitions */
+#main-content {
+  animation: page-fade-in 0.15s ease-out;
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

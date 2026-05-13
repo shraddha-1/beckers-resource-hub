@@ -12,7 +12,7 @@ export default function App() {
     <BrowserRouter>
       <div style={{
         display: 'flex', flexDirection: 'column', minHeight: '100vh',
-        background: 'var(--bh-navy-800)',
+        background: 'var(--color-bg-tinted)',
       }}>
 
         {/* Skip to main content */}
@@ -27,11 +27,11 @@ export default function App() {
           tabIndex={-1}
         >
           <Routes>
-            <Route path="/"                  element={<Home />} />
-            <Route path="/assets"            element={<Listing />} />
-            <Route path="/assets/:id"        element={<AssetDetail />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/assets" element={<Listing />} />
+            <Route path="/assets/:id" element={<AssetDetail />} />
             <Route path="/assets/:id/signup" element={<Signup />} />
-            <Route path="/decisions"         element={<Decisions />} />
+            <Route path="/decisions" element={<Decisions />} />
           </Routes>
         </main>
         <Footer />
