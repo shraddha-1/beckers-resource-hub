@@ -108,10 +108,7 @@ export default function Home() {
               <Link to="/assets" className="btn btn-primary">
                 Browse the full library
               </Link>
-              {/* flagship is always defined from the JSON import */}
-              <Link to={`/assets/${flagship.id}`} className="btn-ghost-inverse">
-                Read the flagship report →
-              </Link>
+              
             </div>
           </div>
 
