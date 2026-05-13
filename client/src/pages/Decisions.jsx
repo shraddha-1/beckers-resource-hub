@@ -168,53 +168,39 @@ export default function Decisions() {
             </BodyText>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {UI_CHANGES.map(({ title, before, after, why }) => (
-                <div key={title} style={{
-                  background: '#fff', border: '1px solid var(--bh-gray-200)',
-                  borderRadius: 'var(--radius-lg)', overflow: 'hidden',
-                }}>
-                  <div style={{
-                    padding: '14px 20px', background: 'var(--bh-gray-050)',
-                    borderBottom: '1px solid var(--bh-gray-200)',
-                  }}>
-                    <h3 style={{
-                      fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 700,
-                      color: 'var(--bh-gray-900)',
-                    }}>{title}</h3>
-                  </div>
-                  <div style={{
-                    padding: '18px 20px',
-                    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20,
-                  }}>
-                    <div>
-                      <div style={{
-                        fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
-                        textTransform: 'uppercase', color: 'var(--bh-gray-500)', marginBottom: 6,
-                      }}>Before</div>
-                      <p style={{ fontSize: 13, color: 'var(--bh-gray-700)', lineHeight: 1.65 }}>{before}</p>
-                    </div>
-                    <div>
-                      <div style={{
-                        fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
-                        textTransform: 'uppercase', color: 'var(--bh-red-800)', marginBottom: 6,
-                      }}>After</div>
-                      <p style={{ fontSize: 13, color: 'var(--bh-gray-700)', lineHeight: 1.65 }}>{after}</p>
-                    </div>
-                  </div>
-                  <div style={{
-                    padding: '12px 20px', background: 'var(--bh-ice-100)',
-                    borderTop: '1px solid var(--bh-ice-200)',
-                    borderLeft: '3px solid var(--bh-navy-800)',
-                  }}>
-                    <div style={{
-                      fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
-                      textTransform: 'uppercase', color: 'var(--bh-navy-800)', marginBottom: 4,
-                    }}>Why</div>
-                    <p style={{ fontSize: 13, color: 'var(--bh-gray-700)', lineHeight: 1.6 }}>{why}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+  {UI_CHANGES.map(({ title, what, why }) => (
+    <div key={title} style={{
+      background: '#fff', border: '1px solid var(--bh-gray-200)',
+      borderRadius: 'var(--radius-lg)', overflow: 'hidden',
+    }}>
+      <div style={{
+        padding: '14px 20px', background: 'var(--bh-gray-050)',
+        borderBottom: '1px solid var(--bh-gray-200)',
+      }}>
+        <h3 style={{
+          fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 700,
+          color: 'var(--bh-gray-900)',
+        }}>{title}</h3>
+      </div>
+      <div style={{ padding: '18px 20px' }}>
+        <p style={{ fontSize: 13, color: 'var(--bh-gray-700)', lineHeight: 1.65, marginBottom: 12 }}>
+          {what}
+        </p>
+        <div style={{
+          padding: '12px 16px', background: 'var(--bh-ice-100)',
+          borderLeft: '3px solid var(--bh-navy-800)',
+          borderRadius: '0 var(--radius-sm) var(--radius-sm) 0',
+        }}>
+          <div style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
+            textTransform: 'uppercase', color: 'var(--bh-navy-800)', marginBottom: 4,
+          }}>Why</div>
+          <p style={{ fontSize: 13, color: 'var(--bh-gray-700)', lineHeight: 1.6 }}>{why}</p>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
           </section>
 
           {/* Audience */}
@@ -766,28 +752,29 @@ function SkeletonPreview() {
 
 const UI_CHANGES = [
   {
-    title: 'Asset detail page before signup',
-    before: 'Clicking Register on the listing page took users straight to a form with no information about the asset beyond the card description.',
-    after: 'Clicking an asset navigates to a detail page with the full editorial brief: headline stats, a pull quote, a locked outline, and the speaker list. The gate sits in the right column.',
-    why: 'Users are more likely to complete a registration form when they know exactly what they are trading their email for. Showing the full brief before asking reduces abandonment.',
+    title: 'Asset detail page with full editorial brief',
+    what: 'Clicking an asset from the listing opens a full detail page with headline stats, a pull quote, a locked content outline, and the speaker list. The signup form sits in the right column alongside this brief.',
+    why: 'Visitors are more likely to complete a registration form when they know exactly what they are trading their email for. The brief on the left answers every question before the form on the right asks anything.',
+  },
+  {
+    title: 'Signup form embedded on the detail page',
+    what: 'The registration form lives in the right column of the asset detail page. After a successful signup the form transforms into the unlocked actions panel in place — no navigation, no redirect.',
+    why: 'Routing to a separate signup page breaks context. The visitor loses sight of the asset they were evaluating. Keeping the form on the same page means the brief stays visible while they fill it out.',
   },
   {
     title: 'Form chunked into two fieldsets',
-    before: 'Five fields in one flat list with no visual grouping.',
-    after: 'Two fieldsets: About you (name and email) and About your work (job title and company).',
+    what: 'The five required fields are grouped into two fieldsets: About you (name and email) and About your work (job title and company). Each fieldset has a kicker label.',
     why: 'Chunking reduces perceived length. Two small tasks feel easier than one five-field form even though the total effort is identical.',
   },
   {
-    title: 'Sponsor filter in listing',
-    before: 'Filtering was only by content type. No way to filter by sponsor.',
-    after: 'A Refine panel adds sponsor multi-select with a scrolling marquee and an ephemeral search input. Sponsors write to the URL as a comma-separated list.',
-    why: 'Executives often follow specific vendors they are evaluating. Epic Systems content is more relevant than content type for a CFO making a capital decision.',
+    title: 'Sponsor filter in the listing refine panel',
+    what: 'A Refine panel adds sponsor multi-select with a scrolling marquee ticker and an ephemeral search input. Selected sponsors write to the URL as a comma-separated list so the state is shareable and preserved on back navigation.',
+    why: 'Executives often follow specific vendors they are evaluating. A CFO deciding on capital allocation cares more about Kaufman Hall content than content type. Sponsor filtering makes this use case first-class.',
   },
   {
-    title: 'Confirmation CTA sends user back to the asset',
-    before: 'After signup, the user saw a confirmation panel with related assets but no direct path back to the content they just unlocked.',
-    after: 'The primary CTA in the confirmation is View the event details or Read now. This returns the user to the asset detail page where the gate is replaced by the unlocked action.',
-    why: 'The user\'s goal is to access the content, not to complete a form. The confirmation should complete the journey.',
+    title: 'Registered state on listing rows',
+    what: 'After signing up for an asset, that row shows three simultaneous signals: a navy left border, a light tinted background, and a checkmark pill badge replacing the verb CTA.',
+    why: 'A returning visitor should not have to remember what they already signed up for. The signals are additive — any one communicates the state, but together they are immediately scannable across a dense list.',
   },
 ]
 

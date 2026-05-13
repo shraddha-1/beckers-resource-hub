@@ -10,10 +10,10 @@ import Decisions from './pages/Decisions'
 export default function App() {
   return (
     <BrowserRouter>
-      <div style={{
-        display: 'flex', flexDirection: 'column', minHeight: '100vh',
-        background: 'var(--color-bg-tinted)',
-      }}>
+     <div style={{
+  display: 'flex', flexDirection: 'column', minHeight: '100vh',
+  background: 'var(--bh-navy-900)',
+}}>
 
         {/* Skip to main content */}
         <a href="#main-content" className="skip-link">
