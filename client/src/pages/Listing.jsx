@@ -739,10 +739,13 @@ function AssetRow({ asset }) {
       style={{
         display: 'grid', gridTemplateColumns: '1fr auto',
         gap: 24, alignItems: 'center',
-        background: '#fff',
+        background: unlocked ? 'var(--bh-ice-050)' : '#fff',
         border: '1px solid var(--bh-ice-200)',
+        borderLeft: unlocked
+          ? '3px solid var(--bh-navy-800)'
+          : '1px solid var(--bh-ice-200)',
         borderRadius: 'var(--radius-lg)',
-        padding: '20px 24px',
+        padding: unlocked ? '20px 24px 20px 22px' : '20px 24px',
         textDecoration: 'none',
       }}
     >
@@ -801,12 +804,19 @@ function AssetRow({ asset }) {
           >{date}</time>
         )}
         {unlocked ? (
-          <span className="bh-label" style={{
-            color: 'var(--bh-navy-800)',
+          <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 5,
+            fontFamily: 'var(--font-sans)',
+            fontSize: 11, fontWeight: 700,
+            letterSpacing: '0.06em', textTransform: 'uppercase',
+            padding: '5px 10px',
+            borderRadius: 'var(--radius-pill)',
+            background: 'var(--bh-ice-100)',
+            border: '1.5px solid var(--bh-navy-800)',
+            color: 'var(--bh-navy-800)',
           }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="3.5" strokeLinecap="round">
               <path d="M20 6L9 17l-5-5"/>
             </svg>
             Registered

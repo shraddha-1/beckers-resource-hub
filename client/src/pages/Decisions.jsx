@@ -322,39 +322,49 @@ export default function Decisions() {
               </EdgeCase>
 
               <EdgeCase
-                title="Content gate"
-                description="On the asset detail page, the right column shows a gate before the visitor registers. They see the full editorial brief, stats, outline, and speaker list first. The gate offers Google sign-in as the primary path."
-                why="Showing the full brief before asking for contact details reduces anxiety. The visitor knows exactly what they are trading their email for."
-              >
-                <div style={{
-                  padding: '20px 24px', background: 'var(--bh-navy-800)',
-                  borderRadius: 'var(--radius-lg)', color: '#fff',
-                }}>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 700, marginBottom: 6 }}>
-                    Save your seat
-                  </div>
-                  <p style={{ fontSize: 13, color: 'var(--bh-ice-100)', marginBottom: 14 }}>
-                    Confirm your spot for this live session.
-                  </p>
-                  <div style={{
-                    background: '#fff', borderRadius: 'var(--radius-sm)',
-                    padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10,
-                    fontSize: 13, fontWeight: 600, color: 'var(--bh-gray-900)', marginBottom: 10,
-                  }}>
-                    <svg width="16" height="16" viewBox="0 0 18 18">
-                      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-                      <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-                      <path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/>
-                      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.167 6.656 3.58 9 3.58z" fill="#EA4335"/>
-                    </svg>
-                    Continue with Google
-                  </div>
-                  <div style={{
-                    background: 'var(--bh-red-800)', borderRadius: 'var(--radius-sm)',
-                    padding: '10px 14px', fontSize: 13, fontWeight: 600, color: '#fff', textAlign: 'center',
-                  }}>Continue with email</div>
-                </div>
-              </EdgeCase>
+  title="Content gate — brief on the left, form on the right"
+  description="On the asset detail page, the signup form lives in the right column alongside the full editorial brief. The visitor sees the complete asset — stats, outline, pull quote, speakers — while the form sits ready on the right. After a successful signup the form transforms into the unlocked actions panel in place."
+  why="Keeping the form on the same page as the brief eliminates a navigation step and removes all context loss. The visitor evaluates on the left and commits on the right without ever leaving the page. The brief stays visible while they fill out the form which reduces the anxiety of not knowing what they are signing up for."
+>
+  <div style={{
+    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16,
+    background: 'var(--bh-gray-050)',
+    border: '1px solid var(--bh-gray-200)',
+    borderRadius: 'var(--radius-lg)',
+    padding: 20,
+  }}>
+    <div>
+      <div className="bh-kicker" style={{ marginBottom: 8 }}>Asset brief</div>
+      <div className="skeleton" style={{ height: 18, width: '90%', marginBottom: 8 }} />
+      <div className="skeleton" style={{ height: 18, width: '70%', marginBottom: 16 }} />
+      <div className="skeleton" style={{ height: 12, width: '100%', marginBottom: 6 }} />
+      <div className="skeleton" style={{ height: 12, width: '85%' }} />
+    </div>
+    <div style={{
+      background: '#fff',
+      border: '1px solid var(--bh-ice-200)',
+      borderRadius: 'var(--radius-md)',
+      overflow: 'hidden',
+    }}>
+      <div style={{ background: 'var(--bh-navy-800)', padding: '14px 16px' }}>
+        <div style={{ fontFamily: 'var(--font-serif)', fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
+          Register for this webinar
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--bh-ice-100)' }}>Free. Details saved for next time.</div>
+      </div>
+      <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="skeleton" style={{ height: 36, width: '100%' }} />
+        <div className="skeleton" style={{ height: 36, width: '100%' }} />
+        <div className="skeleton" style={{ height: 36, width: '100%' }} />
+        <div style={{
+          background: 'var(--bh-red-800)', borderRadius: 'var(--radius-sm)',
+          padding: '10px', fontSize: 13, fontWeight: 600,
+          color: '#fff', textAlign: 'center', marginTop: 4,
+        }}>Register now</div>
+      </div>
+    </div>
+  </div>
+</EdgeCase>
 
               <EdgeCase
                 title="Empty state after filtering"
@@ -843,17 +853,30 @@ const UX_DECISIONS = [
     ],
   },
   {
-    number: '06',
-    category: 'Sign-up page',
-    title: 'Inline confirmation sends user back to the asset',
-    problem: 'Most forms redirect to a thank-you page after submission.',
-    decision: 'After a successful signup, the form transforms into a confirmation state. The primary CTA sends the user back to the asset detail page they just unlocked.',
-    alternatives: [
-      { label: 'Redirect to thank-you page', why: 'Disconnects user from context, breaks the goal journey' },
-      { label: 'Inline confirmation with no next action', why: 'Leaves the user at a dead end' },
-      { label: 'Inline confirmation with asset CTA', why: 'Chosen: completes the user journey from browse to access' },
-    ],
-  },
+  number: '06',
+  category: 'Asset detail page',
+  title: 'Signup form embedded on the asset detail page',
+  problem: 'Routing to a separate signup page breaks the context. The visitor clicks Register, lands on a new page with just a form, and loses sight of the asset they were evaluating.',
+  decision: 'The signup form lives in the right column of the asset detail page alongside the full editorial brief. After a successful signup the form panel transforms into the unlocked actions state in place — no navigation, no redirect, no context lost.',
+  alternatives: [
+    { label: 'Separate /assets/:id/signup route', why: 'Cleaner URL but breaks context — user loses sight of the asset while filling the form' },
+    { label: 'Modal overlay', why: 'Keeps context but traps focus, breaks back button, and fails on mobile' },
+    { label: 'Form embedded in right column', why: 'Chosen: brief on the left, form on the right. The visitor evaluates and commits on the same page. Confirmation transforms in place.' },
+  ],
+},
+  {
+  number: '07',
+  category: 'Listing page',
+  title: 'Registered state on listing rows',
+  problem: 'A returning visitor who has already signed up for an asset sees the same listing as a first-time visitor. There is no signal that they have already committed to this content — they have to remember what they signed up for.',
+  decision: 'Registered assets show three simultaneous signals: a navy left border accent, a light ice background tint, and a pill badge with a checkmark. The signals are additive — any one of them would communicate the state, but together they make registered assets immediately scannable at a glance without reading the CTA.',
+  alternatives: [
+    { label: 'No registered state', why: 'Simpler but forces the user to remember what they signed up for across sessions' },
+    { label: 'Gray out the row', why: 'Communicates completion but feels like the content is unavailable or disabled' },
+    { label: 'Change verb to Registered', why: 'Text alone is easy to miss when scanning a dense list' },
+    { label: 'Navy border + tinted bg + pill badge', why: 'Chosen: three reinforcing signals that work at a glance. The navy connects visually to the brand, the tint separates the row without hiding it, and the pill badge is the explicit label for screen readers and careful readers.' },
+  ],
+},
 ]
 
 const TECH_DECISIONS = [

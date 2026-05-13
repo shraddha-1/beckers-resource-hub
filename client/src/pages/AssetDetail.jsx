@@ -6,22 +6,16 @@ import { isUnlocked, markUnlocked } from '../lib/unlocks'
 import AssetBrief from '../components/AssetBrief'
 import Badge from '../components/Badge'
 import Signup from './Signup'
-
 import UnlockedActions from '../components/UnlockedActions'
 import { trackView } from '../lib/recentlyViewed'
-
-// Asset detail / gate page. The library and the landing page route
-// here first instead of jumping straight to the form, so the visitor
-// can evaluate the asset (real brief, outline, headline stats,
-// quote) before deciding to spend their email.
 
 export default function AssetDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  const [asset, setAsset]     = useState(null)
-  const [related, setRelated] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [asset, setAsset]       = useState(null)
+  const [related, setRelated]   = useState([])
+  const [loading, setLoading]   = useState(true)
   const [unlocked, setUnlocked] = useState(false)
 
   useEffect(() => {
@@ -48,26 +42,6 @@ export default function AssetDetail() {
   if (loading) return <DetailSkeleton />
   if (!asset)  return null
 
-  // Mocked Google sign-in: pretend the visitor's identity comes back
-  // from Google, persist the unlock, and flip into the unlocked
-  // state without leaving this page.
-  const handleGoogleSuccess = (profile) => {
-    try {
-      localStorage.setItem('bh_person', JSON.stringify({
-        firstName:   profile.firstName   || '',
-        lastName:    profile.lastName    || '',
-        email:       profile.email       || '',
-        jobTitle:    '',
-        companyName: '',
-      }))
-    } catch {
-      // localStorage may be unavailable in private browsing.
-    }
-    markUnlocked(asset.id)
-    setUnlocked(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
   return (
     <div style={{
       maxWidth: 1200,
@@ -83,20 +57,20 @@ export default function AssetDetail() {
           {related.length > 0 && <RelatedAssets related={related} />}
         </div>
 
-        {/* RIGHT — sticky gate or unlocked actions */}
+        {/* RIGHT — sticky signup form or unlocked actions */}
         <div className="gate-sticky">
           {unlocked ? (
             <UnlockedActions asset={asset} />
           ) : (
             <Signup
-    asset={asset}
-    related={related}
-    onSuccess={() => {
-      markUnlocked(asset.id)
-      setUnlocked(true)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }}
-  />
+              asset={asset}
+              related={related}
+              onSuccess={() => {
+                markUnlocked(asset.id)
+                setUnlocked(true)
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+            />
           )}
           <SponsorMiniCard sponsorName={asset.sponsorName} />
         </div>
@@ -104,8 +78,6 @@ export default function AssetDetail() {
     </div>
   )
 }
-
-// ── Sub-components ────────────────────────────────────────────────
 
 function Breadcrumb({ assetName }) {
   return (
@@ -184,7 +156,7 @@ function RelatedAssets({ related }) {
         gap: 12,
       }}>
         {related.map(a => {
-          const c = getConfig(a.assetType)
+          const c    = getConfig(a.assetType)
           const date = formatDate(a.executionDate || a.expirationDate)
           return (
             <li key={a.id}>
@@ -215,9 +187,9 @@ function RelatedAssets({ related }) {
                       {date}
                     </time>
                   ) : <span className="bh-meta">On demand</span>}
-                  <span className="bh-label" style={{
-                    color: 'var(--bh-red-800)',
-                  }}>{c.verb} →</span>
+                  <span className="bh-label" style={{ color: 'var(--bh-red-800)' }}>
+                    {c.verb} →
+                  </span>
                 </div>
               </Link>
             </li>

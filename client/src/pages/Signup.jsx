@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { signUp } from '../lib/api'
 import { getConfig, formatDate } from '../lib/assetHelpers'
 import Badge from '../components/Badge'
+import { markUnlocked } from '../lib/unlocks'
 
 export default function Signup({ asset, onSuccess }) {
   const id = asset.id
@@ -64,6 +65,7 @@ export default function Signup({ asset, onSuccess }) {
     try {
       const result = await signUp(id, form)
       try { localStorage.setItem('bh_person', JSON.stringify(form)) } catch {}
+      markUnlocked(id)
       setConfirmed(result)
       onSuccess?.()
     } catch (err) {
