@@ -140,20 +140,6 @@ curl -X POST http://localhost:3000/assets/5af0e596b3c7e95aaafe42e01222f91666354f
 
 Returns `400` with `{ "error": "person is required" }` if the person field is missing.
 
----
-
-## Running tests
-
-```bash
-# Unit tests
-npm test
-
-# E2E tests
-npx jest src/__tests__/assets.e2e.test.ts
-
-# Watch mode
-npm run test:watch
-```
 
 ---
 

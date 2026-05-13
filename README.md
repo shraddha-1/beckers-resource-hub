@@ -1,301 +1,189 @@
-# asset-lead-gen-interview-take-home
+# Becker's Resource Hub
 
-"Take Home" technical interview question
-
-## Design system
-
-The `design_system/` folder contains the Becker's Healthcare brand system candidates should use as a reference when building the frontend.
-
-### Fonts & colors — `colors_and_type.css`
-
-Import this file first in any HTML page. It defines:
-
-- **Colors** — deep navy (`--bh-navy-*`) as the identity color, crimson red (`--bh-red-*`) as the accent (links, kickers, CTAs), and a cool-neutral ice palette (`--bh-ice-*`, `--bh-gray-*`) for backgrounds and borders. Semantic aliases (`--color-bg`, `--color-accent`, etc.) are also provided.
-- **Typography** — `--font-serif` (Noto Serif) for all headlines; `--font-sans` (Fira Sans) for body, nav, and UI. A fluid type scale from `--fs-xs` (12px) to `--fs-6xl` (72px), plus pre-built classes like `.bh-h1`, `.bh-headline`, `.bh-kicker`, `.bh-body`.
-- **Spacing** — 4px base scale (`--sp-1` through `--sp-11`).
-- **Radii** — largely square; max `--radius-lg` (8px) for cards, `--radius-pill` for tags.
-- **Shadows** — minimal (`--shadow-xs` through `--shadow-lg`); editorial, not decorative.
-
-### Assets
-
-| Path | Contents |
-|------|----------|
-| `assets/logos/` | Becker's Hospital Review wordmark (PNG) |
-| `assets/icons/` | SVG icons for the four content types: `events`, `webinars`, `whitepapers`, `podcasts` |
-| `uploads/` | Brand board screenshots used to derive the system |
-
-### UI kits
-
-| Kit | Path | Description |
-|-----|------|-------------|
-| BHR Web | `ui_kits/bhr-web/` | High-fidelity recreation of the Becker's Hospital Review website. Includes `Header.jsx`, `ArticleCard.jsx`, `EventAndCTA.jsx`, `Footer.jsx`, `SiteSwitcher.jsx`, and an interactive `index.html` demo. |
-| Newsletter | `ui_kits/newsletter/` | Recreation of the Becker's daily email newsletter (640px editorial stack). Includes `Newsletter.jsx` and a rendered `index.html` sample. |
-
-Both kits depend on `colors_and_type.css` and scope their styles through `kit.css`.
-
-### Preview pages
-
-`design_system/preview/` contains standalone HTML files for every token and component category: color palettes, type scales, spacing, shadows, radii, buttons, forms, nav, tags, and article/event cards. Open any file in a browser to see the rendered system.
-
-### Brand voice
-
-The design system README (`design_system/README.md`) includes full content guidelines: sentence-case headlines, third-person copy, AP-style numbers, no emoji, and the "Professional · Trusted · Engaging" tone triad. Read it before writing any UI copy.
+A content asset portal built for the Becker's Healthcare UX Engineer take-home. Browse, filter, and register for webinars, whitepapers, and podcasts curated for health system executives.
 
 ---
 
-## Frontend take-home
+## Running locally
 
-Open [`ux-design-dev-interview-challenge.html`](./ux-design-dev-interview-challenge.html) in a browser for the full frontend assignment brief — requirements, per-page specs, API usage, and the submission checklist.
+You need **two terminal windows** running at the same time.
 
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) v18 or higher
-- npm v9 or higher
-
-## Getting started
-
-**1. Install dependencies**
+### Step 1 — Install and start the backend
 
 ```bash
 npm install
-```
-
-**2. Configure environment**
-
-```bash
-cp .env.example .env
-```
-
-The default values in `.env.example` work out of the box:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | `3000` | Port the HTTP server listens on |
-| `NODE_ENV` | `development` | Runtime environment |
-
-**3. Start the dev server**
-
-```bash
 npm run dev
 ```
 
-The server starts with hot reload via `ts-node-dev`. You should see:
+You should see:
 
 ```
 [assetService] Loaded 10 assets and 10 signups from stub data
 Server listening on port 3000
 ```
 
-## API
+Keep this terminal open.
 
-All responses are wrapped in `{ data: T }` on success and `{ error: string }` on failure.
+### Step 2 — Install and start the frontend
+
+Open a second terminal window in the same folder.
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+You should see:
+
+```
+➜  Local:   http://localhost:5173/
+```
+
+### Step 3 — Open the app
+
+Go to **http://localhost:5173** in your browser.
+
+> If you see a blank page or data is not loading, make sure the backend terminal from Step 1 is still running.
 
 ---
 
-### `GET /assets` — List all assets
+## Requirements
 
-Returns every lead gen asset in the system.
+- Node.js v18 or higher
+- npm v9 or higher
 
-**Response `200`**
+Check your versions:
 
-```json
-{
-  "data": [
-    {
-      "id": "5af0e596b3c7e95aaafe42e01222f91666354f9152238bcf443b2c4c4ac46cfa",
-      "name": "The Future of AI in Clinical Decision Support",
-      "description": "A live webinar exploring how AI-powered tools are transforming clinical decision-making...",
-      "executionDate": "2026-06-10T14:00:00.000Z",
-      "expirationDate": "2026-12-31",
-      "sponsorName": "Epic Systems",
-      "assetType": "Live Webinar",
-      "speakers": [
-        {
-          "id": "04d7bc0f2f0841afc8f7383a2525a2c5edb805625dbe1b117b70ecc3d3004911",
-          "firstName": "Linda",
-          "lastName": "Nguyen",
-          "jobTitle": "Director of Clinical Informatics",
-          "companyName": "Mayo Clinic",
-          "email": "linda.nguyen@mayoclinic.org"
-        }
-      ],
-      "createdDate": "2026-04-01T09:00:00.000Z",
-      "createdBy": "admin@beckershealthcare.com",
-      "lastModifiedDate": "2026-04-15T11:30:00.000Z",
-      "lastModifiedBy": "admin@beckershealthcare.com"
-    }
-  ]
-}
+```bash
+node --version
+npm --version
 ```
 
-**Example**
+Download Node.js at https://nodejs.org if needed.
+
+---
+
+## Pages
+
+| Page | URL | What it does |
+|------|-----|--------------|
+| Homepage | `/` | Featured assets, recently viewed, newsletter |
+| Resource library | `/assets` | Browse, filter, search, paginate |
+| Asset detail | `/assets/:id` | Full brief, content gate, registration |
+| Design decisions | `/decisions` | Documents every design and technical decision |
+
+---
+
+## Project structure
+
+```
+├── src/                     # Backend — Express + TypeScript
+│   └── data/
+│       ├── assets.json      # 10 stub assets
+│       └── persons.json     # Known registrants
+│
+└── client/                  # Frontend — React + Vite
+    └── src/
+        ├── components/      # Nav, Footer, Badge, ContentGate, etc.
+        ├── data/
+        │   └── flagship.json  # Demo asset shown on homepage only
+        ├── lib/
+        │   ├── api.js         # All API calls
+        │   ├── assetHelpers.js
+        │   ├── recentlyViewed.js
+        │   └── unlocks.js
+        └── pages/
+            ├── Home.jsx
+            ├── Listing.jsx
+            ├── AssetDetail.jsx
+            ├── Signup.jsx
+            └── Decisions.jsx
+```
+
+---
+
+## API
+
+The backend runs on `http://localhost:3000`. All responses wrap data in `{ data: T }` on success and `{ error: string }` on failure.
+
+### GET /assets
+Returns all assets.
 
 ```bash
 curl http://localhost:3000/assets
 ```
 
----
-
-### `GET /assets/:id` — Get a single asset
-
-Returns one asset by its id, including optional `speakers` and scheduling fields.
-
-**Path parameters**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | string | The asset's unique identifier |
-
-**Response `200`**
-
-```json
-{
-  "data": {
-    "id": "5af0e596b3c7e95aaafe42e01222f91666354f9152238bcf443b2c4c4ac46cfa",
-    "name": "The Future of AI in Clinical Decision Support",
-    "description": "A live webinar exploring how AI-powered tools are transforming clinical decision-making...",
-    "executionDate": "2026-06-10T14:00:00.000Z",
-    "expirationDate": "2026-12-31",
-    "sponsorName": "Epic Systems",
-    "assetType": "Live Webinar",
-    "speakers": [...],
-    "createdDate": "2026-04-01T09:00:00.000Z",
-    "createdBy": "admin@beckershealthcare.com",
-    "lastModifiedDate": "2026-04-15T11:30:00.000Z",
-    "lastModifiedBy": "admin@beckershealthcare.com"
-  }
-}
-```
-
-**Response `404`** — asset id not found
-
-```json
-{ "error": "Asset not found" }
-```
-
-**Example**
+### GET /assets/:id
+Returns a single asset.
 
 ```bash
 curl http://localhost:3000/assets/5af0e596b3c7e95aaafe42e01222f91666354f9152238bcf443b2c4c4ac46cfa
 ```
 
+### POST /assets/:id/signup
+Registers a person. Idempotent — same person + same asset always returns the same record.
+
+```bash
+curl -X POST http://localhost:3000/assets/5af0e596b3c7e95aaafe42e01222f91666354f9152238bcf443b2c4c4ac46cfa/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "person": {
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "jobTitle": "CFO",
+      "companyName": "Acme Health",
+      "email": "jane.smith@acme.com"
+    }
+  }'
+```
+
+Returns `400` with `{ "error": "person is required" }` if the person field is missing.
+
 ---
 
-### `POST /assets/:id/signup` — Sign up for an asset
-
-Registers a person for a lead gen asset. The operation is idempotent: signing up the same person for the same asset twice returns the same signup record both times.
-
-**Path parameters**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | string | The asset's unique identifier |
-
-**Request body** (`application/json`)
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `person` | object | yes | The person signing up |
-| `person.id` | string | no | Existing person id. If omitted, one is generated from the person's name and email |
-| `person.firstName` | string | yes | |
-| `person.lastName` | string | yes | |
-| `person.jobTitle` | string | yes | |
-| `person.companyName` | string | yes | |
-| `person.email` | string | yes | |
-
-**Response `201`**
-
-```json
-{
-  "data": {
-    "id": "a3f9c2...",
-    "assetId": "5af0e596b3c7...",
-    "signupDate": "2026-05-11T18:32:00.000Z",
-    "person": {
-      "id": "7b1d44...",
-      "firstName": "Jane",
-      "lastName": "Smith",
-      "jobTitle": "CFO",
-      "companyName": "Acme Health",
-      "email": "jane.smith@acme.com"
-    }
-  }
-}
-```
-
-**Response `400`** — `person` field missing from request body
-
-```json
-{ "error": "person is required" }
-```
-
-**Example — new person (no existing id)**
+## Running tests
 
 ```bash
-curl -X POST http://localhost:3000/assets/5af0e596b3c7e95aaafe42e01222f91666354f9152238bcf443b2c4c4ac46cfa/signup \
-  -H "Content-Type: application/json" \
-  -d '{
-    "person": {
-      "firstName": "Jane",
-      "lastName": "Smith",
-      "jobTitle": "CFO",
-      "companyName": "Acme Health",
-      "email": "jane.smith@acme.com"
-    }
-  }'
-```
-
-**Example — known person (preserve existing id)**
-
-```bash
-curl -X POST http://localhost:3000/assets/5af0e596b3c7e95aaafe42e01222f91666354f9152238bcf443b2c4c4ac46cfa/signup \
-  -H "Content-Type: application/json" \
-  -d '{
-    "person": {
-      "id": "04d7bc0f2f0841afc8f7383a2525a2c5edb805625dbe1b117b70ecc3d3004911",
-      "firstName": "Linda",
-      "lastName": "Nguyen",
-      "jobTitle": "Director of Clinical Informatics",
-      "companyName": "Mayo Clinic",
-      "email": "linda.nguyen@mayoclinic.org"
-    }
-  }'
-```
-
-## Testing
-
-### Unit tests
-
-Mocks the service layer and tests controller/routing behavior in isolation.
-
-```bash
+# Unit tests
 npm test
-```
 
-### E2E tests
-
-Runs the full Express stack against real stub data — no mocks. No server needs to be running; supertest handles it internally.
-
-```bash
+# E2E tests
 npx jest src/__tests__/assets.e2e.test.ts
-```
 
-To run all tests together:
-
-```bash
-npm test
-```
-
-### Watch mode
-
-```bash
+# Watch mode
 npm run test:watch
 ```
 
-## Other commands
+---
 
-```bash
-npm run build      # compile TypeScript to dist/
-npm start          # run the compiled server (requires build first)
-npm run lint       # lint src/**/*.ts
-```
+## Key decisions
+
+Full reasoning is on the `/decisions` page. Short version:
+
+- **Rows not cards** on the listing page — matches the information-dense interfaces this audience uses daily
+- **Pagination over infinite scroll** — page state lives in the URL so the back button restores position
+- **Verb-matched CTAs** — Register, Watch, Download, Listen instead of generic Sign Up
+- **Blur-time validation** — each field validates when the user leaves it, not on submit
+- **Inline confirmation** — form transforms in place after signup, primary CTA returns user to the asset
+- **Content gate before signup** — full editorial brief visible before asking for contact details
+- **URL-based filter state** — every filter writes to URL params so back button and sharing work correctly
+- **localStorage personalization** — recently viewed (up to 3) and form pre-fill across sessions
+- **Vite proxy** — all API calls use `/api/assets`, no CORS config needed on the backend
+
+---
+
+## Accessibility
+
+Built to WCAG 2.1 AA throughout. Highlights:
+
+- Skip to main content link
+- `:focus-visible` outlines on all interactive elements
+- `aria-live` on result counts and confirmations
+- `aria-pressed` on filter chips and sort buttons
+- `role="img"` with `aria-label` on all badges
+- `role="alert"` on form errors and API errors
+- Minimum 44×44px touch targets on all buttons
+- All color combinations pass AA contrast (most pass AAA)
+
+Full contrast audit with ratios is on the `/decisions` page.
