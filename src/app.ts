@@ -7,7 +7,7 @@ const app = express();
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://beckers-resource-hub.vercel.app/',
+    'https://beckers-resource-hub.vercel.app',
   ]
 }))
 
