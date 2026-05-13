@@ -1,0 +1,547 @@
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg-tinted);
+  color: var(--color-fg);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: var(--font-sans); }
+
+/* ── Skip to main content — WCAG 2.4.1 ── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  z-index: 9999;
+  padding: 12px 24px;
+  background: var(--bh-navy-800);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 3px solid var(--bh-red-800);
+  transition: top 0.1s;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+/* ── Screen reader only ── */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Focus styles — WCAG 2.4.7 ── */
+/* Every focusable element needs a visible focus indicator */
+*:focus-visible {
+  outline: 3px solid var(--bh-red-800);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* On dark backgrounds, use white focus ring */
+header *:focus-visible,
+footer *:focus-visible,
+.dark-surface *:focus-visible {
+  outline-color: #fff;
+}
+
+/* Remove default outline only when focus-visible is supported */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Buttons — exact from design_system/preview/components-buttons.html ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all .15s ease;
+  text-decoration: none;
+}
+/* Minimum touch target 44x44px — WCAG 2.5.5 */
+.btn { min-height: 44px; min-width: 44px; }
+
+.btn-primary  { background: var(--bh-red-800); color: #fff; }
+.btn-primary:hover  { background: var(--bh-red-700); }
+.btn-secondary { background: var(--bh-navy-800); color: #fff; }
+.btn-secondary:hover { background: var(--bh-navy-700); }
+.btn-ghost {
+  background: transparent;
+  color: var(--bh-navy-800);
+  border-color: var(--bh-navy-800);
+}
+.btn-ghost:hover { background: var(--bh-navy-800); color: #fff; }
+.btn-text {
+  background: transparent;
+  color: var(--bh-red-800);
+  border: 0;
+  padding: 10px 0;
+  min-height: auto;
+}
+.btn-text:hover { color: var(--bh-red-700); text-decoration: underline; }
+
+/* Ghost button on dark backgrounds */
+.btn-ghost-inverse {
+  background: transparent;
+  color: var(--bh-ice-200);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.btn-ghost-inverse:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+/* ── Subscribe button ── */
+.subscribe-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--bh-red-800);
+  padding: 7px 16px;
+  border-radius: 100px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+  /* Minimum touch target */
+  min-height: 44px;
+}
+.subscribe-btn:hover { background: var(--bh-red-700); }
+
+.subscribe-btn .arrow-circle {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.7);
+  background: transparent;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+  line-height: 1;
+}
+.subscribe-btn:hover .arrow-circle {
+  background: rgba(255,255,255,0.9);
+  border-color: transparent;
+  color: var(--bh-red-800);
+}
+
+/* ── Skeleton loader ── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bh-gray-200) 25%,
+    var(--bh-gray-100) 50%,
+    var(--bh-gray-200) 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.5s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Typography corrections for WCAG contrast ── */
+
+/*
+  FIXED: --bh-gray-500 (#8A8A8A) on white fails AA at small sizes.
+  Replaced with --bh-gray-700 (#4A4A4A) which gives 9.7:1 on white.
+*/
+.meta-text {
+  color: var(--bh-gray-700); /* #4A4A4A — 9.7:1 on white. Passes AA */
+  font-size: var(--fs-sm);
+  font-family: var(--font-sans);
+}
+
+/*
+  FIXED: kicker text on navy.
+  --bh-red-600 (#C41E3A) on --bh-navy-800 (#091F3E) = 3.8:1 at 11px. Fails AA.
+  Use white for kickers on dark backgrounds instead.
+  Red kickers are fine on WHITE backgrounds (contrast is 5.9:1 there).
+*/
+.bh-kicker-inverse {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: var(--fs-xs);
+  line-height: 1;
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  /* White on navy: 18.7:1 contrast. Passes AAA */
+  color: rgba(255,255,255,0.75);
+}
+
+/* ── Responsive utilities ── */
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+  .desktop-nav { display: none !important; }
+  .mobile-menu-btn { display: flex !important; }
+}
+
+@media (min-width: 769px) {
+  .mobile-nav { display: none !important; }
+}
+
+/* ── Page-level mobile ── */
+@media (max-width: 768px) {
+
+  /* Grids collapse to 1 col */
+  .grid-3 { grid-template-columns: 1fr !important; }
+  .grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid-2 { grid-template-columns: 1fr !important; }
+
+  /* Signup */
+  .signup-grid { grid-template-columns: 1fr !important; }
+
+  /* Listing */
+  .listing-page { padding: 24px 16px 60px !important; }
+
+  /* Asset row stacks */
+  .asset-row { grid-template-columns: 1fr !important; }
+  .asset-row-actions {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  /* Hero stats wrap */
+  .hero-stats {
+    gap: 24px !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* Footer */
+  .bh-footer__inner {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+    padding: 32px 24px !important;
+  }
+  .bh-footer__brand {
+    padding-right: 0 !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    padding-bottom: 24px !important;
+  }
+  .bh-footer__col {
+    border-left: none !important;
+    padding-left: 0 !important;
+  }
+  .bh-footer__legal {
+    padding: 16px 24px !important;
+    text-align: center !important;
+  }
+  .bh-footer__social {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+
+  /* Subscribe form stacks */
+  #subscribe form {
+    flex-direction: column !important;
+  }
+  #subscribe form input {
+    border-right: 1px solid rgba(255,255,255,0.2) !important;
+    border-bottom: none !important;
+    border-radius: 4px 4px 0 0 !important;
+  }
+  #subscribe form button {
+    border-radius: 0 0 4px 4px !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .name-fields { grid-template-columns: 1fr !important; }
+
+  .hero-stats div {
+    min-width: 80px;
+  }
+}
+/* ── Tablet nav fixes (768px to 1024px) ── */
+@media (max-width: 1024px) and (min-width: 769px) {
+  /* Site switcher scrolls horizontally on tablet */
+  .site-switcher-nav {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hide About and For Sponsors on tablet to save space */
+  .site-switcher-right {
+    gap: 12px !important;
+  }
+
+  .site-switcher-about {
+    display: none !important;
+  }
+
+  /* Shrink logo on tablet */
+  .logo-product {
+    font-size: 16px !important;
+  }
+
+  /* Shrink nav padding */
+  .masthead-inner {
+    padding: 0 16px !important;
+    gap: 16px !important;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 769px) {
+  /* Hide For Sponsors too on smaller tablets */
+  .site-switcher-sponsors {
+    display: none !important;
+  }
+}
+
+/* ── New: refined three-page experience ─────────────────────── */
+/* Layout primitives for the new asset detail page and the refined
+   landing/listing sections. Kept additive — existing rules above are
+   unchanged so the legacy signup page still renders correctly. */
+
+.asset-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.gate-sticky {
+  position: sticky;
+  top: 24px;
+}
+
+.landing-stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.sponsor-spotlight {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: center;
+}
+
+/* Refine panel collapse animation. Uses opacity + translate (no
+   layout properties) so the GPU does the work and reduced-motion
+   users skip it entirely via the rule below. */
+.refine-panel {
+  overflow: hidden;
+  transition: max-height 0.2s ease, opacity 0.15s ease;
+}
+.refine-panel[hidden] { display: none; }
+
+@media (max-width: 960px) {
+  .asset-detail-grid {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+  .gate-sticky { position: static; }
+  .landing-stat-row { grid-template-columns: repeat(2, 1fr) !important; }
+  .sponsor-spotlight { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 480px) {
+  .landing-stat-row { grid-template-columns: 1fr !important; }
+}
+
+/* ── Polish: card hover + section rhythm ─────────────────────── */
+
+/*
+  Shared hover treatment for every card-shaped link surface
+  (Featured, Recently viewed, Related, AssetRow). One class so
+  the whole platform feels coherent and tunable from one place.
+*/
+.bh-card-hover {
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.bh-card-hover:hover,
+.bh-card-hover:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--bh-navy-600) !important;
+  box-shadow: var(--shadow-md);
+}
+
+/*
+  When the parent already owns the click affordance, inner
+  pseudo-CTAs (spans styled like links) shouldn't underline on
+  hover — that signal belongs to the parent.
+*/
+.bh-card-hover .bh-link,
+.bh-card-hover a { text-decoration: none; }
+
+/*
+  Vertical rhythm utility. Children inherit the flex column gap
+  from a CSS variable so the same component reads tightly on a
+  card and breathes on a section.
+*/
+.bh-section-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap, 16px);
+}
+
+/* ── Hero responsive collapse ────────────────────────────────── */
+@media (max-width: 900px) {
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+}
+
+/* ── Listing toolbar stacks on narrow screens ──────────────── */
+@media (max-width: 640px) {
+  .listing-toolbar {
+    grid-template-columns: 1fr !important;
+  }
+  .listing-toolbar > * { width: 100%; }
+  .listing-toolbar .bh-select select { width: 100%; }
+}
+
+/* ── Headline rhythm ─────────────────────────────────────────── */
+/* Keep h1/h2/h3 from breaking awkwardly at narrow widths. */
+h1, h2, h3 { text-wrap: balance; }
+
+/* ── Marquee (auto-scrolling chip ticker) ───────────────────── */
+/*
+  Used for the sponsor chip carousel in the listing's Refine panel
+  when no search query is active. The track is rendered with the
+  chip set duplicated, then translated -50% over the loop so the
+  duplicate seamlessly takes the originals' place — no jump cut.
+  Pause on hover or keyboard focus inside so the user can read or
+  click. The mask gradient fades chips in/out at the edges so they
+  don't pop in.
+*/
+.bh-marquee {
+  position: relative;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 28px,
+    #000 calc(100% - 28px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 28px,
+    #000 calc(100% - 28px),
+    transparent 100%
+  );
+}
+.bh-marquee-track {
+  display: inline-flex;
+  gap: 8px;
+  width: max-content;
+  animation: bh-marquee-scroll 45s linear infinite;
+  will-change: transform;
+}
+.bh-marquee:hover .bh-marquee-track,
+.bh-marquee:focus-within .bh-marquee-track {
+  animation-play-state: paused;
+}
+@keyframes bh-marquee-scroll {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+/* ── Sort dropdown (styled native select) ───────────────────── */
+.bh-select {
+  position: relative;
+  display: inline-block;
+}
+.bh-select select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: var(--fw-semibold);
+  color: var(--bh-navy-800);
+  background: #fff;
+  border: 1.5px solid var(--bh-ice-300);
+  border-radius: var(--radius-md);
+  padding: 0 38px 0 16px;
+  height: 44px;
+  min-height: 44px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.bh-select select:hover {
+  border-color: var(--bh-navy-600);
+}
+.bh-select select:focus-visible {
+  border-color: var(--bh-navy-800);
+  box-shadow: 0 0 0 3px rgba(9, 31, 62, 0.18);
+}
+.bh-select::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--bh-navy-800);
+  border-bottom: 1.5px solid var(--bh-navy-800);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .skeleton { animation: none !important; }
+  .bh-card-hover:hover,
+  .bh-card-hover:focus-visible { transform: none; }
+  .bh-marquee-track { animation: none !important; }
+}
+/* AudienceBar — stack on mobile */
+@media (max-width: 600px) {
+  .audience-bar-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}

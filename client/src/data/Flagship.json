@@ -1,0 +1,30 @@
+{
+  "id": "flagship-serious-illness-care-2026",
+  "name": "Serious Illness Care: Closing the Gap Between Patient Wishes and Clinical Reality",
+  "description": "A new whitepaper from Vynca and Becker's Healthcare examining why advance care planning remains underutilized across U.S. health systems — and what leading organizations are doing to close the gap.",
+  "assetType": "Whitepaper",
+  "sponsorName": "Vynca",
+  "expirationDate": "2027-06-01",
+  "lastModifiedDate": "2026-05-10T09:00:00.000Z",
+  "pageCount": 24,
+  "stats": [
+    { "value": "$3,494", "label": "Average cost reduction per patient with ACP documentation" },
+    { "value": "43%",    "label": "Of patients want less aggressive end-of-life care than they receive" },
+    { "value": "52%",    "label": "Of health systems lack a standardized ACP workflow" }
+  ],
+  "quote": {
+    "body": "Patients who have documented their care preferences cost health systems significantly less in the final months of life — and report dramatically higher satisfaction.",
+    "attribution": "Dr. Jessica Weil, CMO, Vynca"
+  },
+  "outline": {
+    "kind": "chapters",
+    "items": [
+      "The state of advance care planning in U.S. health systems",
+      "Why documentation rates remain below 30% nationally",
+      "How leading systems are integrating ACP into EHR workflows",
+      "The financial case: cost avoidance and quality metrics",
+      "A framework for health system leaders to act in 2026"
+    ]
+  },
+  "speakers": []
+}
