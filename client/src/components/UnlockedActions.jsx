@@ -1,4 +1,3 @@
-// Replaces the ContentGate when the asset is already unlocked. Renders
 // a type-appropriate primary action (download / watch / listen /
 // register) plus a quiet acknowledgment that the visitor has access.
 // Typography pulled from the design-system scale.

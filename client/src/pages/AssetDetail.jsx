@@ -5,7 +5,8 @@ import { getConfig, formatDate } from '../lib/assetHelpers'
 import { isUnlocked, markUnlocked } from '../lib/unlocks'
 import AssetBrief from '../components/AssetBrief'
 import Badge from '../components/Badge'
-import ContentGate from '../components/ContentGate'
+import Signup from './Signup'
+
 import UnlockedActions from '../components/UnlockedActions'
 import { trackView } from '../lib/recentlyViewed'
 
@@ -87,7 +88,15 @@ export default function AssetDetail() {
           {unlocked ? (
             <UnlockedActions asset={asset} />
           ) : (
-            <ContentGate asset={asset} onGoogleSuccess={handleGoogleSuccess} />
+            <Signup
+    asset={asset}
+    related={related}
+    onSuccess={() => {
+      markUnlocked(asset.id)
+      setUnlocked(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }}
+  />
           )}
           <SponsorMiniCard sponsorName={asset.sponsorName} />
         </div>
