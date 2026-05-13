@@ -1,4 +1,6 @@
-const BASE = '/api/assets'
+const BASE = import.meta.env.VITE_API_BASE
+  ? `${import.meta.env.VITE_API_BASE}/assets`
+  : '/api/assets'
 
 export async function getAssets() {
   const res = await fetch(BASE)
